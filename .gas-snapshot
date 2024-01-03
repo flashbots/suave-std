@@ -1,1 +1,1 @@
-TestContract:testBar() (gas: 401)
+TestTransactions:testLegacyTransactionRLPEncoding() (gas: 163969)
