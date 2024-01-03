@@ -1,0 +1,38 @@
+name: SuaveLib sync
+
+on: [repository_dispatch, workflow_dispatch]
+
+permissions:
+  pull-requests: write
+  issues: write
+  repository-projects: write
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Checkout tools repo
+        uses: actions/checkout@v4
+        with:
+          repository: flashbots/suave-geth
+          path: suave-geth
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Mirror
+        run: |
+          cp suave-geth/suave/sol/libraries/Suave.sol ./src/suavelib/Suave.sol
+          cp suave-geth/suave/sol/libraries/SuaveForge.sol ./src/suavelib/SuaveForge.sol
+          git add ./src/suavelib/Suave.sol
+          git add ./src/suavelib/SuaveForge.sol
+          rm -rf suave-geth
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
