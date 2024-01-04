@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.8;
 
-import "forge-std/console.sol";
-
 interface Vm {
     function ffi(string[] calldata commandInput) external view returns (bytes memory result);
 }
@@ -37,9 +35,9 @@ contract Wrapper {
         return string(abi.encodePacked("0x", converted));
     }
 
-    /// Strips the first 4 bytes from the calldata and returns the rest.
     fallback() external {
-        bytes memory msgdata = msg.data[4:];
+        bytes memory msgdata = forgeIt(abi.encodePacked(address(this)), msg.data);
+
         assembly {
             let location := msgdata
             let length := mload(msgdata)
