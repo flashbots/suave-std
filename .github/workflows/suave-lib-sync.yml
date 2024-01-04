@@ -26,6 +26,13 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
+      - name: Get Commit ID
+        id: get_commit_id
+        run: |
+          cd suave-geth
+          commit_id=$(git rev-parse HEAD)
+          echo "commit_ref=https://github.com/flashbots/suave-geth/commit/$commit_id" >> $GITHUB_OUTPUT
+
       - name: Mirror
         run: |
           cp suave-geth/suave/sol/libraries/Suave.sol ./src/suavelib/Suave.sol
@@ -39,6 +46,10 @@ jobs:
         with:
           title: "Update Suave library"
           delete-branch: true
+          commit-message: Update Suave.sol library to ${{ steps.get_commit_id.outputs.commit_ref }}
+          branch: bot/suave-lib-update
           labels: |
             suave-lib-update
             automated pr
+          body: |
+            Update Suave.sol library to ${{ steps.get_commit_id.outputs.commit_ref }}
