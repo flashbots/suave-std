@@ -37,23 +37,13 @@ contract Wrapper {
         return string(abi.encodePacked("0x", converted));
     }
 
+    /// Strips the first 4 bytes from the calldata and returns the rest.
     fallback() external {
-        // bytes memory data = forgeIt(abi.encodePacked(address(this)), msg.data);
-        bytes memory byteArray = abi.encode("aaaaa");
-
+        bytes memory msgdata = msg.data[4:];
         assembly {
-            // Get the free memory pointer
-            let memPtr := mload(0x40)
-
-            // Set the length of the byte array
-            mstore(byteArray, 0x20) // Set the length to 32 bytes (1 slot)
-            mstore(add(byteArray, 0x20), 0x41414141) // Set the first 4 bytes of data (example 'AAAA')
-
-            // Update the free memory pointer
-            mstore(0x40, add(memPtr, 0x60))
-
-            // Return the byte array
-            return(memPtr, 0x20)
+            let location := msgdata
+            let length := mload(msgdata)
+            return(add(location, 0x20), length)
         }
     }
 }
