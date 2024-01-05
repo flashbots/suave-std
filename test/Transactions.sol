@@ -21,17 +21,17 @@ contract TestTransactions is Test {
             s: abi.encodePacked(hex"8a8fae537ce25ed8cb5af9adac3f141af69bd515bd2ba031522df09b97dd72b1")
         });
 
-        bytes memory rlp = Transactions.encodeRLP(legacyTxn0);
+        bytes memory rlp = Transactions.encodeLegacyRLP(legacyTxn0);
 
         bytes memory expected = abi.encodePacked(
             hex"f85f800a82c35094095e7baea6a6c7c4c2dfeb977efac326af552d870a801ba09bea4c4daac7c7c52e093e6a4c35dbbcf8856f1af7b059ba20253e70848d094fa08a8fae537ce25ed8cb5af9adac3f141af69bd515bd2ba031522df09b97dd72b1"
         );
         assertEq0(rlp, expected);
 
-        Transactions.Legacy memory legacyTxn1 = Transactions.decodeRLP(rlp);
+        Transactions.Legacy memory legacyTxn1 = Transactions.decodeLegacyRLP(rlp);
 
         // re-encode to validate that the decoding was correct
-        bytes memory rlp1 = Transactions.encodeRLP(legacyTxn1);
+        bytes memory rlp1 = Transactions.encodeLegacyRLP(legacyTxn1);
         assertEq0(rlp1, expected);
     }
 }

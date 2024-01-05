@@ -32,10 +32,10 @@ contract Example {
         });
 
         // Encode to RLP
-        bytes memory rlp = Transactions.encodeRLP(legacyTxn0);
+        bytes memory rlp = Transactions.encodeLegacyRLP(legacyTxn0);
 
         // Decode from RLP
-        Transactions.Legacy memory legacyTxn1 = Transactions.decodeRLP(rlp);
+        Transactions.Legacy memory legacyTxn1 = Transactions.decodeLegacyRLP(rlp);
     }
 }
 ```
