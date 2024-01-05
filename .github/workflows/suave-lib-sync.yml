@@ -36,9 +36,7 @@ jobs:
       - name: Mirror
         run: |
           cp suave-geth/suave/sol/libraries/Suave.sol ./src/suavelib/Suave.sol
-          cp suave-geth/suave/sol/libraries/SuaveForge.sol ./src/suavelib/SuaveForge.sol
           git add ./src/suavelib/Suave.sol
-          git add ./src/suavelib/SuaveForge.sol
           rm -rf suave-geth
 
       - name: Create Pull Request
