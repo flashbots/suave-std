@@ -18,7 +18,7 @@ func main() {
 	flag.BoolVar(&applyFlag, "apply", false, "write to file")
 	flag.Parse()
 
-	bytecode, err := getForgeWrapperBytecode()
+	bytecode, err := getForgeConnectorBytecode()
 	if err != nil {
 		fmt.Printf("failed to get forge wrapper bytecode: %v\n", err)
 		os.Exit(1)
@@ -41,12 +41,12 @@ pragma solidity ^0.8.8;
 
 import "../suavelib/Suave.sol";
 
-interface Vm3 {
+interface registryVM {
     function etch(address, bytes calldata) external;
 }
 
-library Suave2 {
-    Vm3 constant vm = Vm3(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+library Registry {
+    registryVM constant vm = registryVM(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
     function enableLib(address addr) public {
         // code for Wrapper
@@ -84,7 +84,7 @@ func applyTemplate(bytecode string, precompileNames []string) error {
 	}
 
 	if applyFlag {
-		if err := os.WriteFile("./src/forge/Wrapper2.sol", []byte(str), 0644); err != nil {
+		if err := os.WriteFile("./src/forge/Registry.sol", []byte(str), 0644); err != nil {
 			return err
 		}
 	} else {
@@ -93,8 +93,8 @@ func applyTemplate(bytecode string, precompileNames []string) error {
 	return nil
 }
 
-func getForgeWrapperBytecode() (string, error) {
-	abiContent, err := os.ReadFile("./out/Wrapper.sol/Wrapper.json")
+func getForgeConnectorBytecode() (string, error) {
+	abiContent, err := os.ReadFile("./out/Connector.sol/Connector.json")
 	if err != nil {
 		return "", err
 	}

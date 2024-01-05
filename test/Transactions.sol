@@ -2,13 +2,9 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "forge-std/Vm.sol";
-import "forge-std/console.sol";
 import "src/Transactions.sol";
-import "src/suavelib/Suave.sol";
-import "src/forge/FSuave.sol";
 
-contract TestTransactions is Test, SuaveEnabled {
+contract TestTransactions is Test {
     using Transactions for *;
 
     function testLegacyTransactionRLPEncoding() public {
@@ -37,10 +33,5 @@ contract TestTransactions is Test, SuaveEnabled {
         // re-encode to validate that the decoding was correct
         bytes memory rlp1 = Transactions.encodeRLP(legacyTxn1);
         assertEq0(rlp1, expected);
-    }
-
-    function testSomething() public {
-        bytes memory data = Suave.confidentialInputs();
-        console.logBytes(data);
     }
 }

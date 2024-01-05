@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.8;
 
-interface Vm {
+interface connectorVM {
     function ffi(string[] calldata commandInput) external view returns (bytes memory result);
 }
 
-contract Wrapper {
-    Vm constant vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+contract Connector {
+    connectorVM constant vm = connectorVM(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
     function forgeIt(bytes memory addr, bytes memory data) internal view returns (bytes memory) {
         string memory addrHex = iToHex(addr);
