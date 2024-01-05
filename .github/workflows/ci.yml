@@ -29,7 +29,7 @@ jobs:
 
       - name: Include the binary on $PATH
         run: |
-          echo "::add-path::$(pwd)/suave-geth/build/bin"
+          echo "$(pwd)/suave-geth/build/bin" >> $GITHUB_PATH
 
       - name: Run suave
         run: |
