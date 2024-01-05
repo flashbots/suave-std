@@ -52,7 +52,7 @@ $ suave --suave.dev
 
 Then, your `forge` scripts/test must import the `SuaveEnabled` contract from the `suave-std/Test.sol` file.
 
-```
+```solidity
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
