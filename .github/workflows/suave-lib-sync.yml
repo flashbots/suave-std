@@ -29,6 +29,11 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ^1.21
+
       - name: Checkout tools repo
         uses: actions/checkout@v4
         with:
@@ -49,6 +54,17 @@ jobs:
           cp suave-geth/suave/sol/libraries/Suave.sol ./src/suavelib/Suave.sol
           git add ./src/suavelib/Suave.sol
           rm -rf suave-geth
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Regenerate Forge registry
+        run: |
+          forge build
+          go run ./tools/forge-gen/main.go --apply
+          git add ./src/forge/Registry.sol
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
