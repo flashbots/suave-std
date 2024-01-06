@@ -1,6 +1,9 @@
 name: SuaveLib sync
 
-on: [repository_dispatch, workflow_dispatch]
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [suavelib-sync]
 
 permissions:
   pull-requests: write
@@ -12,6 +15,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Log Dispatch Information
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        run: |
+          echo "this run was triggered by dispatch from repo: flashbots/suave-geth"
+          echo "ref: ${{ github.event.client_payload.ref }}"
+          echo "sha: ${{ github.event.client_payload.sha }}"
+          echo "run: ${{ github.event.client_payload.run }}"
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
