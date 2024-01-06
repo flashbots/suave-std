@@ -10,9 +10,8 @@ contract SuaveEnabled is Test {
         inputs[0] = "suave";
         inputs[1] = "forge";
 
-        try vm.ffi(inputs) returns (bytes memory result) {
-            console.logBytes(result);
-        } catch (bytes memory reason) {
+        try vm.ffi(inputs) returns (bytes memory) {}
+        catch (bytes memory reason) {
             revert(detectFFIErrorMessage(reason));
         }
 
