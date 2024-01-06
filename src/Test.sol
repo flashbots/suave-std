@@ -7,7 +7,7 @@ import "forge-std/Test.sol";
 contract SuaveEnabled is Test {
     function setUp() public {
         string[] memory inputs = new string[](2);
-        inputs[0] = "suave1";
+        inputs[0] = "suave";
         inputs[1] = "forge";
 
         try vm.ffi(inputs) returns (bytes memory result) {
