@@ -43,7 +43,12 @@ library Transactions {
         items[0] = RLPWriter.writeUint(txStruct.nonce);
         items[1] = RLPWriter.writeUint(txStruct.gasPrice);
         items[2] = RLPWriter.writeUint(txStruct.gas);
-        items[3] = RLPWriter.writeAddress(txStruct.to);
+
+        if (txStruct.to == address(0)) {
+            items[3] = RLPWriter.writeBytes(bytes(""));
+        } else {
+            items[3] = RLPWriter.writeAddress(txStruct.to);
+        }
         items[4] = RLPWriter.writeUint(txStruct.value);
         items[5] = RLPWriter.writeBytes(txStruct.data);
         items[6] = RLPWriter.writeBytes(txStruct.v);
@@ -81,7 +86,13 @@ library Transactions {
         txStruct.nonce = uint64(ls[0].toUint());
         txStruct.gasPrice = uint64(ls[1].toUint());
         txStruct.gas = uint64(ls[2].toUint());
-        txStruct.to = ls[3].toAddress();
+
+        if (ls[3].toRlpBytes().length == 1) {
+            txStruct.to = address(0);
+        } else {
+            txStruct.to = ls[3].toAddress();
+        }
+
         txStruct.value = uint64(ls[4].toUint());
         txStruct.data = ls[5].toBytes();
         txStruct.v = ls[6].toBytes();
