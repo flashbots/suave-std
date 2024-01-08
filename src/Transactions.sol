@@ -117,29 +117,20 @@ library Transactions {
         EIP1559 memory txStruct;
 
         RLPReader.RLPItem[] memory ls = rlp.toRlpItem().toList();
-        require(ls.length == 12, "invalid transaction");
+        require(ls.length == 13, "invalid transaction");
 
-        txStruct.chainId = uint64(ls[0].toUint());
-        txStruct.nonce = uint64(ls[1].toUint());
-        txStruct.maxPriorityFeePerGas = uint64(ls[2].toUint());
-        txStruct.maxFeePerGas = uint64(ls[3].toUint());
-        txStruct.gas = uint64(ls[4].toUint());
-        txStruct.to = ls[5].toAddress();
-        txStruct.value = uint64(ls[6].toUint());
-        txStruct.data = ls[7].toBytes();
-
-        // Decode accessList
-        RLPReader.RLPItem[] memory accessListItems = ls[8].toBytes().toRlpItem().toList();
-        uint256 numAccessListItems = accessListItems.length;
-        txStruct.accessList = new bytes[](numAccessListItems);
-
-        for (uint256 i; i < numAccessListItems; i++) {
-            txStruct.accessList[i] = accessListItems[i].toBytes();
-        }
-
-        txStruct.v = ls[9].toBytes();
-        txStruct.r = ls[10].toBytes();
-        txStruct.s = ls[11].toBytes();
+        txStruct.chainId = uint64(ls[1].toUint());
+        txStruct.nonce = uint64(ls[2].toUint());
+        txStruct.maxPriorityFeePerGas = uint64(ls[3].toUint());
+        txStruct.maxFeePerGas = uint64(ls[4].toUint());
+        txStruct.gas = uint64(ls[5].toUint());
+        txStruct.to = ls[6].toAddress();
+        txStruct.value = uint64(ls[7].toUint());
+        txStruct.data = ls[8].toBytes();
+        txStruct.accessList = ls[9].toBytes();
+        txStruct.v = ls[10].toBytes();
+        txStruct.r = ls[11].toBytes();
+        txStruct.s = ls[12].toBytes();
 
         return txStruct;
     }
