@@ -37,7 +37,7 @@ library Transactions {
         bytes v;
     }
 
-    function encodeLegacyRLP(Legacy memory txStruct) internal pure returns (bytes memory) {
+    function encodeRLP(Legacy memory txStruct) internal pure returns (bytes memory) {
         bytes[] memory items = new bytes[](9);
 
         items[0] = RLPWriter.writeUint(txStruct.nonce);
