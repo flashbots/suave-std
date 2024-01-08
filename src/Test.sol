@@ -6,12 +6,17 @@ import "forge-std/Test.sol";
 
 contract SuaveEnabled is Test {
     function setUp() public {
-        string[] memory inputs = new string[](2);
+        string[] memory inputs = new string[](3);
         inputs[0] = "suave";
         inputs[1] = "forge";
+        inputs[2] = "status";
 
-        try vm.ffi(inputs) returns (bytes memory) {}
-        catch (bytes memory reason) {
+        try vm.ffi(inputs) returns (bytes memory response) {
+            // the prefix is 'not-ok'
+            if (isPrefix(hex"6e6f742d6f6b", response)) {
+                revert("Local Suave node not detected running");
+            }
+        } catch (bytes memory reason) {
             revert(detectFFIErrorMessage(reason));
         }
 
