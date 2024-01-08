@@ -52,12 +52,7 @@ contract TestTransactions is Test {
         Transactions.Legacy memory legacyTxn1 = Transactions.decodeLegacyRLP(rlp);
 
         // re-encode to validate that the decoding was correct
-<<<<<<< HEAD:test/Transactions.sol
-        bytes memory rlp1 = Transactions.encodeLegacyRLP(legacyTxn1);
-        assertEq0(rlp1, expected);
-=======
         bytes memory rlp1 = Transactions.encodeRLP(legacyTxn1);
         assertEq0(rlp1, expectedRlp);
->>>>>>> main:test/Transactions.t.sol
     }
 }
