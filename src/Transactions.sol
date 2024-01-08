@@ -59,33 +59,31 @@ library Transactions {
     }
 
     function encodeRLP(EIP1559 memory txStruct) internal pure returns (bytes memory) {
-        bytes[] memory items = new bytes[](13);
+        bytes[] memory items = new bytes[](12);
 
-        items[0] = RLPWriter.writeBytes(hex"02");
-        items[1] = RLPWriter.writeUint(txStruct.chainId);
-        items[2] = RLPWriter.writeUint(txStruct.nonce);
-        items[3] = RLPWriter.writeUint(txStruct.maxPriorityFeePerGas);
-        items[4] = RLPWriter.writeUint(txStruct.maxFeePerGas);
-        items[5] = RLPWriter.writeUint(txStruct.gas);
-        items[6] = RLPWriter.writeAddress(txStruct.to);
-        items[7] = RLPWriter.writeUint(txStruct.value);
-        items[8] = RLPWriter.writeBytes(txStruct.data);
-        items[9] = RLPWriter.writeBytes(txStruct.accessList);
-        items[10] = RLPWriter.writeBytes(txStruct.v);
-        items[11] = RLPWriter.writeBytes(txStruct.r);
-        items[12] = RLPWriter.writeBytes(txStruct.s);
+        items[0] = RLPWriter.writeUint(txStruct.chainId);
+        items[1] = RLPWriter.writeUint(txStruct.nonce);
+        items[2] = RLPWriter.writeUint(txStruct.maxPriorityFeePerGas);
+        items[3] = RLPWriter.writeUint(txStruct.maxFeePerGas);
+        items[4] = RLPWriter.writeUint(txStruct.gas);
+        items[5] = RLPWriter.writeAddress(txStruct.to);
+        items[6] = RLPWriter.writeUint(txStruct.value);
+        items[7] = RLPWriter.writeBytes(txStruct.data);
+        items[8] = RLPWriter.writeBytes(txStruct.accessList);
+        items[9] = RLPWriter.writeBytes(txStruct.v);
+        items[10] = RLPWriter.writeBytes(txStruct.r);
+        items[11] = RLPWriter.writeBytes(txStruct.s);
 
-        return RLPWriter.writeList(items);
-        // bytes memory rlpTxn = RLPWriter.writeList(items);
+        bytes memory rlpTxn = RLPWriter.writeList(items);
 
-        // bytes memory txn = new bytes(1 + rlpTxn.length);
-        // txn[0] = 0x02;
+        bytes memory txn = new bytes(1 + rlpTxn.length);
+        txn[0] = 0x02;
 
-        // for (uint256 i = 0; i < rlpTxn.length; ++i) {
-        //     txn[i + 1] = rlpTxn[i];
-        // }
+        for (uint256 i = 0; i < rlpTxn.length; ++i) {
+            txn[i + 1] = rlpTxn[i];
+        }
 
-        // return txn;
+        return txn;
     }
 
     function decodeLegacyRLP(bytes memory rlp) internal pure returns (Legacy memory) {
@@ -113,24 +111,30 @@ library Transactions {
         return txStruct;
     }
 
-    function decodeRLP(bytes memory rlp) internal pure returns (EIP1559 memory) {
+    function decodeRLP(bytes memory rlp1) internal pure returns (EIP1559 memory) {
         EIP1559 memory txStruct;
 
-        RLPReader.RLPItem[] memory ls = rlp.toRlpItem().toList();
-        require(ls.length == 13, "invalid transaction");
+        bytes memory rlp = new bytes(rlp1.length - 1);
 
-        txStruct.chainId = uint64(ls[1].toUint());
-        txStruct.nonce = uint64(ls[2].toUint());
-        txStruct.maxPriorityFeePerGas = uint64(ls[3].toUint());
-        txStruct.maxFeePerGas = uint64(ls[4].toUint());
-        txStruct.gas = uint64(ls[5].toUint());
-        txStruct.to = ls[6].toAddress();
-        txStruct.value = uint64(ls[7].toUint());
-        txStruct.data = ls[8].toBytes();
-        txStruct.accessList = ls[9].toBytes();
-        txStruct.v = ls[10].toBytes();
-        txStruct.r = ls[11].toBytes();
-        txStruct.s = ls[12].toBytes();
+        for (uint256 i = 0; i < rlp1.length - 1; ++i) {
+            rlp[i] = rlp1[i + 1];
+        }
+
+        RLPReader.RLPItem[] memory ls = rlp.toRlpItem().toList();
+        require(ls.length == 12, "invalid transaction");
+
+        txStruct.chainId = uint64(ls[0].toUint());
+        txStruct.nonce = uint64(ls[1].toUint());
+        txStruct.maxPriorityFeePerGas = uint64(ls[2].toUint());
+        txStruct.maxFeePerGas = uint64(ls[3].toUint());
+        txStruct.gas = uint64(ls[4].toUint());
+        txStruct.to = ls[5].toAddress();
+        txStruct.value = uint64(ls[6].toUint());
+        txStruct.data = ls[7].toBytes();
+        txStruct.accessList = ls[8].toBytes();
+        txStruct.v = ls[9].toBytes();
+        txStruct.r = ls[10].toBytes();
+        txStruct.s = ls[11].toBytes();
 
         return txStruct;
     }

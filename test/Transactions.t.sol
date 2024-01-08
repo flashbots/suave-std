@@ -70,8 +70,8 @@ contract TestTransactions is Test {
                 hex"a9059cbb00000000000000000000000061b7b515c1ec603cf21463bcac992b60fd610ca900000000000000000000000000000000000000000000002dbf877cf6ec677800"
                 ),
             chainId: 1,
-            accessList: bytes(""),
-            v: bytes(""),
+            accessList: abi.encodePacked(hex"8ee28a85ac42174b9e10c49613c0cddcf5d5a5ecb90bd516f81b45a957a64fe2"),
+            v: abi.encodePacked(hex""),
             r: abi.encodePacked(hex"8ee28a85ac42174b9e10c49613c0cddcf5d5a5ecb90bd516f81b45a957a64fe2"),
             s: abi.encodePacked(hex"05349c1076cc83990f425773d6b5995474782f1fccf1b2e43529ac54ac6ae144")
         });
