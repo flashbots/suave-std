@@ -31,7 +31,7 @@ library Transactions {
         uint64 nonce;
         bytes data;
         uint64 chainId;
-        bytes[] accessList;
+        bytes accessList;
         bytes r;
         bytes s;
         bytes v;
@@ -70,7 +70,7 @@ library Transactions {
         items[6] = RLPWriter.writeAddress(txStruct.to);
         items[7] = RLPWriter.writeUint(txStruct.value);
         items[8] = RLPWriter.writeBytes(txStruct.data);
-        items[9] = RLPWriter.writeList(txStruct.accessList);
+        items[9] = RLPWriter.writeBytes(txStruct.accessList);
         items[10] = RLPWriter.writeBytes(txStruct.v);
         items[11] = RLPWriter.writeBytes(txStruct.r);
         items[12] = RLPWriter.writeBytes(txStruct.s);
