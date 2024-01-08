@@ -59,31 +59,33 @@ library Transactions {
     }
 
     function encodeRLP(EIP1559 memory txStruct) internal pure returns (bytes memory) {
-        bytes[] memory items = new bytes[](12);
+        bytes[] memory items = new bytes[](13);
 
-        items[0] = RLPWriter.writeUint(txStruct.chainId);
-        items[1] = RLPWriter.writeUint(txStruct.nonce);
-        items[2] = RLPWriter.writeUint(txStruct.maxPriorityFeePerGas);
-        items[3] = RLPWriter.writeUint(txStruct.maxFeePerGas);
-        items[4] = RLPWriter.writeUint(txStruct.gas);
-        items[5] = RLPWriter.writeAddress(txStruct.to);
-        items[6] = RLPWriter.writeUint(txStruct.value);
-        items[7] = RLPWriter.writeBytes(txStruct.data);
-        items[8] = RLPWriter.writeList(txStruct.accessList);
-        items[9] = RLPWriter.writeBytes(txStruct.v);
-        items[10] = RLPWriter.writeBytes(txStruct.r);
-        items[11] = RLPWriter.writeBytes(txStruct.s);
+        items[0] = RLPWriter.writeBytes(hex"02");
+        items[1] = RLPWriter.writeUint(txStruct.chainId);
+        items[2] = RLPWriter.writeUint(txStruct.nonce);
+        items[3] = RLPWriter.writeUint(txStruct.maxPriorityFeePerGas);
+        items[4] = RLPWriter.writeUint(txStruct.maxFeePerGas);
+        items[5] = RLPWriter.writeUint(txStruct.gas);
+        items[6] = RLPWriter.writeAddress(txStruct.to);
+        items[7] = RLPWriter.writeUint(txStruct.value);
+        items[8] = RLPWriter.writeBytes(txStruct.data);
+        items[9] = RLPWriter.writeList(txStruct.accessList);
+        items[10] = RLPWriter.writeBytes(txStruct.v);
+        items[11] = RLPWriter.writeBytes(txStruct.r);
+        items[12] = RLPWriter.writeBytes(txStruct.s);
 
-        bytes memory rlpTxn = RLPWriter.writeList(items);
+        return RLPWriter.writeList(items);
+        // bytes memory rlpTxn = RLPWriter.writeList(items);
 
-        bytes memory txn = new bytes(1 + rlpTxn.length);
-        txn[0] = 0x02;
+        // bytes memory txn = new bytes(1 + rlpTxn.length);
+        // txn[0] = 0x02;
 
-        for (uint256 i = 0; i < rlpTxn.length; ++i) {
-            txn[i + 1] = rlpTxn[i];
-        }
+        // for (uint256 i = 0; i < rlpTxn.length; ++i) {
+        //     txn[i + 1] = rlpTxn[i];
+        // }
 
-        return txn;
+        // return txn;
     }
 
     function decodeLegacyRLP(bytes memory rlp) internal pure returns (Legacy memory) {
