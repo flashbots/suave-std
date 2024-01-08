@@ -45,6 +45,44 @@ contract TestTransactions is Test {
         _testLegacyTransaction(txnWithoutToAddress, expected);
     }
 
+    function testEIP1559TransactionRLPEncoding() public {
+        // address to;
+        // uint64 gas;
+        // uint64 maxFeePerGas;
+        // uint64 maxPriorityFeePerGas;
+        // uint64 value;
+        // uint64 nonce;
+        // bytes data;
+        // uint64 chainId;
+        // bytes accessList;
+        // bytes r;
+        // bytes s;
+        // bytes v;
+
+        Transactions.EIP1559 memory txnWithToAddress = Transactions.EIP1559({
+            to: address(0xaea46A60368A7bD060eec7DF8CBa43b7EF41Ad85),
+            gas: 64744,
+            maxFeePerGas: 74341019612,
+            maxPriorityFeePerGas: 74341019612,
+            value: 0,
+            nonce: 38,
+            data: abi.encodePacked(
+                hex"a9059cbb00000000000000000000000061b7b515c1ec603cf21463bcac992b60fd610ca900000000000000000000000000000000000000000000002dbf877cf6ec677800"
+                ),
+            chainId: 1,
+            accessList: bytes(""),
+            v: bytes(""),
+            r: abi.encodePacked(hex"8ee28a85ac42174b9e10c49613c0cddcf5d5a5ecb90bd516f81b45a957a64fe2"),
+            s: abi.encodePacked(hex"05349c1076cc83990f425773d6b5995474782f1fccf1b2e43529ac54ac6ae144")
+        });
+
+        bytes memory expected = abi.encodePacked(
+            hex"02f8b1012685114f11efdc85114f11efdc82fce894aea46a60368a7bd060eec7df8cba43b7ef41ad8580b844a9059cbb00000000000000000000000061b7b515c1ec603cf21463bcac992b60fd610ca900000000000000000000000000000000000000000000002dbf877cf6ec677800c080a08ee28a85ac42174b9e10c49613c0cddcf5d5a5ecb90bd516f81b45a957a64fe2a005349c1076cc83990f425773d6b5995474782f1fccf1b2e43529ac54ac6ae144"
+        );
+
+        _testEIP1559Transaction(txnWithToAddress, expected);
+    }
+
     function _testLegacyTransaction(Transactions.Legacy memory legacyTxn, bytes memory expectedRlp) public {
         bytes memory rlp = Transactions.encodeRLP(legacyTxn);
         assertEq0(rlp, expectedRlp);
@@ -53,6 +91,17 @@ contract TestTransactions is Test {
 
         // re-encode to validate that the decoding was correct
         bytes memory rlp1 = Transactions.encodeRLP(legacyTxn1);
+        assertEq0(rlp1, expectedRlp);
+    }
+
+    function _testEIP1559Transaction(Transactions.EIP1559 memory eip1559Txn, bytes memory expectedRlp) public {
+        bytes memory rlp = Transactions.encodeRLP(eip1559Txn);
+        assertEq0(rlp, expectedRlp);
+
+        Transactions.EIP1559 memory eip1559Txn1 = Transactions.decodeRLP(rlp);
+
+        // re-encode to validate that the decoding was correct
+        bytes memory rlp1 = Transactions.encodeRLP(eip1559Txn1);
         assertEq0(rlp1, expectedRlp);
     }
 }
