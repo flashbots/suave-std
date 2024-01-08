@@ -74,7 +74,16 @@ library Transactions {
         items[10] = RLPWriter.writeBytes(txStruct.r);
         items[11] = RLPWriter.writeBytes(txStruct.s);
 
-        return RLPWriter.writeList(items);
+        bytes memory rlpTxn = RLPWriter.writeList(items);
+
+        bytes memory txn = new bytes(1 + rlpTxn.length);
+        txn[0] = 0x02;
+
+        for (uint256 i = 0; i < rlpTxn.length; ++i) {
+            txn[i + 1] = rlpTxn[i];
+        }
+
+        return txn;
     }
 
     function decodeLegacyRLP(bytes memory rlp) internal pure returns (Legacy memory) {
