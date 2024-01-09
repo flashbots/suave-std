@@ -1,6 +1,9 @@
 name: SuaveLib sync
 
-on: [repository_dispatch, workflow_dispatch]
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [suavelib-sync]
 
 permissions:
   pull-requests: write
@@ -12,11 +15,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Log Dispatch Information
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        run: |
+          echo "this run was triggered by dispatch from repo: flashbots/suave-geth"
+          echo "ref: ${{ github.event.client_payload.ref }}"
+          echo "sha: ${{ github.event.client_payload.sha }}"
+          echo "run: ${{ github.event.client_payload.run }}"
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           persist-credentials: false
           fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ^1.21
 
       - name: Checkout tools repo
         uses: actions/checkout@v4
@@ -36,10 +52,19 @@ jobs:
       - name: Mirror
         run: |
           cp suave-geth/suave/sol/libraries/Suave.sol ./src/suavelib/Suave.sol
-          cp suave-geth/suave/sol/libraries/SuaveForge.sol ./src/suavelib/SuaveForge.sol
           git add ./src/suavelib/Suave.sol
-          git add ./src/suavelib/SuaveForge.sol
           rm -rf suave-geth
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Regenerate Forge registry
+        run: |
+          forge build
+          go run ./tools/forge-gen/main.go --apply
+          git add ./src/forge/Registry.sol
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
