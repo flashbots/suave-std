@@ -8,7 +8,9 @@ import (
 	"html/template"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -85,7 +87,7 @@ func applyTemplate(bytecode string, precompileNames []string) error {
 	}
 
 	if applyFlag {
-		if err := os.WriteFile("./src/forge/Registry.sol", []byte(str), 0644); err != nil {
+		if err := os.WriteFile(resolvePath("../../src/forge/Registry.sol"), []byte(str), 0644); err != nil {
 			return err
 		}
 	} else {
@@ -95,7 +97,12 @@ func applyTemplate(bytecode string, precompileNames []string) error {
 }
 
 func getForgeConnectorBytecode() (string, error) {
-	abiContent, err := os.ReadFile("./out/Connector.sol/Connector.json")
+	// compile the Connector contract with forge and the local configuration
+	if _, err := execForgeCommand([]string{"build", "--config-path", resolvePath("./foundry.toml")}, ""); err != nil {
+		return "", err
+	}
+
+	abiContent, err := os.ReadFile(resolvePath("./out/Connector.sol/Connector.json"))
 	if err != nil {
 		return "", err
 	}
@@ -138,21 +145,22 @@ func getPrecompileNames() ([]string, error) {
 }
 
 func formatSolidity(code string) (string, error) {
-	// Check if "forge" command is available in PATH
+	return execForgeCommand([]string{"fmt", "--raw", "-"}, code)
+}
+
+func execForgeCommand(args []string, stdin string) (string, error) {
 	_, err := exec.LookPath("forge")
 	if err != nil {
 		return "", fmt.Errorf("forge command not found in PATH: %v", err)
 	}
 
-	// Command and arguments for forge fmt
-	command := "forge"
-	args := []string{"fmt", "--raw", "-"}
-
-	// Create a command to run the forge fmt command
-	cmd := exec.Command(command, args...)
+	// Create a command to run the forge command
+	cmd := exec.Command("forge", args...)
 
 	// Set up input from stdin
-	cmd.Stdin = bytes.NewBufferString(code)
+	if stdin != "" {
+		cmd.Stdin = bytes.NewBufferString(stdin)
+	}
 
 	// Set up output buffer
 	var outBuf, errBuf bytes.Buffer
@@ -160,9 +168,20 @@ func formatSolidity(code string) (string, error) {
 	cmd.Stderr = &errBuf
 
 	// Run the command
-	if err = cmd.Run(); err != nil {
+	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("error running command: %v", err)
 	}
 
 	return outBuf.String(), nil
+}
+
+func resolvePath(path string) string {
+	// Get the caller's file path.
+	_, filename, _, _ := runtime.Caller(1)
+
+	// Resolve the directory of the caller's file.
+	callerDir := filepath.Dir(filename)
+
+	// Construct the absolute path to the target file.
+	return filepath.Join(callerDir, path)
 }
