@@ -71,7 +71,7 @@ library MevShare {
         request.headers = new string[](1);
         request.headers[0] = "Content-Type:application/json";
         request.body = encodeBundle(bundle);
-        // TODO: Add Flashbots signature
+        request.withFlashbotsSignature = true;
 
         Suave.doHTTPRequest(request);
     }
