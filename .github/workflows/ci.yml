@@ -19,7 +19,7 @@ jobs:
 
       - name: Run suave
         run: |
-          nohup suave-geth --suave.dev &
+          suave-geth --suave.dev &
 
       - name: Test Suave
         run: |
