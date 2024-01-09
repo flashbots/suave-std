@@ -23,7 +23,7 @@ jobs:
         run: forge install
 
       - name: Generate forge-gen
-        run: go run tools/forge-gen --apply
+        run: go run ./tools/forge-gen --apply
 
       - name: Compare the expected and actual src/forge/ directories
         run: |
