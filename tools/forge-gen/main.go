@@ -97,6 +97,15 @@ func applyTemplate(bytecode string, precompileNames []string) error {
 }
 
 func getForgeConnectorBytecode() (string, error) {
+	// mirror the Connector.sol contract to ./src
+	connectorSrc, err := os.ReadFile(resolvePath("../../src/forge/Connector.sol"))
+	if err != nil {
+		return "", err
+	}
+	if err := writeFile(resolvePath("./src-forge-test/Connector.sol"), connectorSrc); err != nil {
+		return "", err
+	}
+
 	// compile the Connector contract with forge and the local configuration
 	if _, err := execForgeCommand([]string{"build", "--config-path", resolvePath("./foundry.toml")}, ""); err != nil {
 		return "", err
@@ -173,6 +182,20 @@ func execForgeCommand(args []string, stdin string) (string, error) {
 	}
 
 	return outBuf.String(), nil
+}
+
+// writeFile creates the parent directory if not found
+// and then writes the file to the path.
+func writeFile(path string, content []byte) error {
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(path, content, 0644); err != nil {
+		return err
+	}
+	return nil
 }
 
 func resolvePath(path string) string {
