@@ -19,7 +19,12 @@ jobs:
 
       - name: Run suave
         run: |
-          suave-geth --suave.dev &
+          nohup suave-geth --suave.dev &
+
+      - name: Test Suave
+        run: |
+          suave-geth version
+          suave-geth forge status
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
