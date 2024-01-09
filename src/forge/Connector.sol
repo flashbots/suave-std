@@ -13,7 +13,7 @@ contract Connector {
         string memory dataHex = iToHex(data);
 
         string[] memory inputs = new string[](4);
-        inputs[0] = "suave";
+        inputs[0] = "suave-geth";
         inputs[1] = "forge";
         inputs[2] = addrHex;
         inputs[3] = dataHex;

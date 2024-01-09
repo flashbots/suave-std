@@ -14,26 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Checkout suave-geth repo
-        uses: actions/checkout@v4
-        with:
-          repository: flashbots/suave-geth
-          path: suave-geth
-          persist-credentials: false
-          fetch-depth: 0
-
-      - name: Build suave
-        run: |
-          cd suave-geth
-          make suave
-
-      - name: Include the binary on $PATH
-        run: |
-          echo "$(pwd)/suave-geth/build/bin" >> $GITHUB_PATH
+      - name: Install suave-geth
+        uses: flashbots/suave-toolchain@v0.1
 
       - name: Run suave
         run: |
-          ./suave-geth/build/bin/suave --suave.dev &
+          suave-geth --suave.dev &
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
