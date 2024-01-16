@@ -8,16 +8,15 @@ import "solady/src/utils/JSONParserLib.sol";
 // https://github.com/flashbots/mev-share/blob/main/specs/bundles/v0.1.md#json-rpc-request-scheme
 library MevShare {
     struct Bundle {
-        string version;
         uint64 inclusionBlock;
         bytes[] bodies;
         bool[] canRevert;
         uint8[] refundPercents;
     }
 
-    function encodeBundle(Bundle memory bundle) internal pure returns (bytes memory) {
+    function encodeBundle(Bundle memory bundle) internal pure returns (Suave.HttpRequest memory) {
         require(bundle.bodies.length == bundle.canRevert.length, "MevShare: bodies and canRevert length mismatch");
-        bytes memory body = abi.encodePacked('{"jsonrpc":"2.0","method":"mev_sendBundle","params":[{');
+        bytes memory body = abi.encodePacked('{"jsonrpc":"2.0","method":"mev_sendBundle","params":[{"version":"v0.1",');
 
         // -> inclusion
         body =
@@ -62,17 +61,19 @@ library MevShare {
         }
 
         body = abi.encodePacked(body, "]}");
-        return body;
+
+        Suave.HttpRequest memory request;
+        request.headers = new string[](1);
+        request.headers[0] = "Content-Type:application/json";
+        request.body = body;
+        request.withFlashbotsSignature = true;
+
+        return request;
     }
 
     function sendBundle(string memory url, Bundle memory bundle) internal view {
-        Suave.HttpRequest memory request;
+        Suave.HttpRequest memory request = encodeBundle(bundle);
         request.url = url;
-        request.headers = new string[](1);
-        request.headers[0] = "Content-Type:application/json";
-        request.body = encodeBundle(bundle);
-        request.withFlashbotsSignature = true;
-
         Suave.doHTTPRequest(request);
     }
 }
