@@ -2,9 +2,17 @@
 pragma solidity ^0.8.8;
 
 import "./forge/Registry.sol";
+import "./suavelib/Suave.sol";
 import "forge-std/Test.sol";
 
+interface ConfidentialInputsWrapperI {
+    function setConfidentialInputs(bytes memory) external;
+    function resetConfidentialInputs() external;
+}
+
 contract SuaveEnabled is Test {
+    ConfidentialInputsWrapperI constant confInputsWrapper = ConfidentialInputsWrapperI(Suave.CONFIDENTIAL_INPUTS);
+
     function setUp() public {
         string[] memory inputs = new string[](3);
         inputs[0] = "suave-geth";
@@ -22,6 +30,12 @@ contract SuaveEnabled is Test {
         }
 
         Registry.enable();
+
+        confInputsWrapper.resetConfidentialInputs();
+    }
+
+    function setConfidentialInputs(bytes memory data) internal {
+        confInputsWrapper.setConfidentialInputs(data);
     }
 
     function detectErrorMessage(bytes memory reason) internal pure returns (string memory) {
