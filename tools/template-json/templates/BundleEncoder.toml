@@ -1,0 +1,13 @@
+name = Bundle
+description: xxx
+type: HelloWorld(string a, string[] b,uint256 c)
+{
+	"hello": {{toHexString .a}},
+	"world": "normal",
+	"vals": [{{range .b}}
+		{{toHexString .}}
+	{{end}}]
+	{{if .c}}
+		,"test": {{toString .c}}
+	{{end}}
+}

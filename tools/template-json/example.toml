@@ -1,0 +1,12 @@
+contract_name = "BundleEncoder"
+
+[structs.Bundle]
+type = "tuple(string a)"
+
+[functions.encode]
+inputs = ["Bundle"]
+template = '''
+{
+   "hello": {{.obj0.a}}
+}
+'''
