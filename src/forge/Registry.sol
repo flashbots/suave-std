@@ -43,7 +43,7 @@ library Registry {
 
     function deployCode(address where, bytes memory creationCode) internal {
         vm.etch(where, creationCode);
-        (, bytes memory runtimeBytecode) = dummyAddr.call("");
+        (, bytes memory runtimeBytecode) = where.call("");
 
         vm.etch(where, runtimeBytecode);
     }
