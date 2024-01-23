@@ -54,8 +54,13 @@ library Registry {
     function enableLib(address addr) public {
         // code for Wrapper
         bytes memory code =
-            hex"{{.Bytecode}}";
+            hex"{{.Bytecodes.Connector}}";
         vm.etch(addr, code);
+
+		// enable is confidential wrapper
+		bytes memory confidentialCode =
+			hex"{{.Bytecodes.Confidential}}";
+		vm.etch(Suave.CONFIDENTIAL_INPUTS, confidentialCode);
     }
 
     function enable() public {
@@ -65,14 +70,14 @@ library Registry {
     }
 }`
 
-func applyTemplate(bytecode string, precompileNames []string) error {
+func applyTemplate(bytecodes *forgeWrapperBytecodes, precompileNames []string) error {
 	t, err := template.New("template").Parse(templateFile)
 	if err != nil {
 		return err
 	}
 
 	input := map[string]interface{}{
-		"Bytecode":        bytecode,
+		"Bytecodes":       bytecodes,
 		"PrecompileNames": precompileNames,
 	}
 
@@ -96,37 +101,67 @@ func applyTemplate(bytecode string, precompileNames []string) error {
 	return nil
 }
 
-func getForgeConnectorBytecode() (string, error) {
-	// mirror the Connector.sol contract to ./src
-	connectorSrc, err := os.ReadFile(resolvePath("../../src/forge/Connector.sol"))
-	if err != nil {
-		return "", err
+type forgeWrapperBytecodes struct {
+	Connector    string
+	Confidential string
+}
+
+func getForgeConnectorBytecode() (*forgeWrapperBytecodes, error) {
+	mirror := func(from, to string) error {
+		connectorSrc, err := os.ReadFile(resolvePath(from))
+		if err != nil {
+			return err
+		}
+		if err := writeFile(resolvePath(to), connectorSrc); err != nil {
+			return err
+		}
+		return nil
 	}
-	if err := writeFile(resolvePath("./src-forge-test/Connector.sol"), connectorSrc); err != nil {
-		return "", err
+
+	// mirror the Connector.sol contract to ./src
+	if err := mirror("../../src/forge/Connector.sol", "./src-forge-test/Connector.sol"); err != nil {
+		return nil, err
+	}
+	// mirror the is confidential solver
+	if err := mirror("../../src/forge/ConfidentialInputs.sol", "./src-forge-test/ConfidentialInputs.sol"); err != nil {
+		return nil, err
 	}
 
 	// compile the Connector contract with forge and the local configuration
 	if _, err := execForgeCommand([]string{"build", "--config-path", resolvePath("./foundry.toml")}, ""); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	abiContent, err := os.ReadFile(resolvePath("./out/Connector.sol/Connector.json"))
-	if err != nil {
-		return "", err
-	}
-
-	var abiArtifact struct {
-		DeployedBytecode struct {
-			Object string
+	decodeBytecode := func(name string) (string, error) {
+		abiContent, err := os.ReadFile(resolvePath(name))
+		if err != nil {
+			return "", err
 		}
-	}
-	if err := json.Unmarshal(abiContent, &abiArtifact); err != nil {
-		return "", err
+
+		var abiArtifact struct {
+			DeployedBytecode struct {
+				Object string
+			}
+		}
+		if err := json.Unmarshal(abiContent, &abiArtifact); err != nil {
+			return "", err
+		}
+
+		bytecode := abiArtifact.DeployedBytecode.Object[2:]
+		return bytecode, nil
 	}
 
-	bytecode := abiArtifact.DeployedBytecode.Object[2:]
-	return bytecode, nil
+	res := &forgeWrapperBytecodes{}
+	var err error
+
+	if res.Connector, err = decodeBytecode("./out/Connector.sol/Connector.json"); err != nil {
+		return nil, err
+	}
+	if res.Confidential, err = decodeBytecode("./out/ConfidentialInputs.sol/ConfidentialInputsWrapper.json"); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func getPrecompileNames() ([]string, error) {
@@ -144,6 +179,9 @@ func getPrecompileNames() ([]string, error) {
 		if len(match) > 1 {
 			name := strings.TrimSpace(match[1])
 			if name == "ANYALLOWED" {
+				continue
+			}
+			if name == "CONFIDENTIAL_INPUTS" {
 				continue
 			}
 			names = append(names, name)
@@ -178,7 +216,7 @@ func execForgeCommand(args []string, stdin string) (string, error) {
 
 	// Run the command
 	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("error running command: %v", err)
+		return "", fmt.Errorf("error running command: %v, %s", err, errBuf.String())
 	}
 
 	return outBuf.String(), nil
