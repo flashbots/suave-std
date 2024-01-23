@@ -14,16 +14,12 @@ interface registryVM {
 library Registry {
     registryVM constant vm = registryVM(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
-    function enableLib(address addr) public {
-        // code for Forge proxy connector
-        vm.etch(addr, type(Connector).runtimeCode);
-    }
-
     function enable() public {
         // enable all suave libraries
         address[] memory addrList = SuaveAddrs.getSuaveAddrs();
         for (uint256 i = 0; i < addrList.length; i++) {
-            enableLib(addrList[i]);
+            // code for Forge proxy connector
+            vm.etch(addrList[i], type(Connector).runtimeCode);
         }
 
         // enable is confidential wrapper
