@@ -15,7 +15,7 @@ library Registry {
 
     function enableLib(address addr) public {
         // code for Forge proxy connector
-        deployCode(addr, type(Connector).creationCode);
+        vm.etch(addr, type(Connector).runtimeCode);
     }
 
     function enable() public {
@@ -38,13 +38,6 @@ library Registry {
         enableLib(Suave.SUBMIT_ETH_BLOCK_TO_RELAY);
 
         // enable is confidential wrapper
-        deployCode(Suave.CONFIDENTIAL_INPUTS, type(ConfidentialInputsWrapper).creationCode);
-    }
-
-    function deployCode(address where, bytes memory creationCode) internal {
-        vm.etch(where, creationCode);
-        (, bytes memory runtimeBytecode) = where.call("");
-
-        vm.etch(where, runtimeBytecode);
+        vm.etch(Suave.CONFIDENTIAL_INPUTS, type(ConfidentialInputsWrapper).runtimeCode);
     }
 }
