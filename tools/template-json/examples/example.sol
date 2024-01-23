@@ -7,12 +7,17 @@ import "solady/src/utils/LibString.sol";
 library BundleEncoder {
     struct Bundle {
         string a;
+        string[] b;
     }
 
     function encode(Bundle memory obj0) internal pure returns (bytes memory) {
         bytes memory body;
-        body = abi.encodePacked(body, '{   "hello":', obj.obj0, "}");
+        body = abi.encodePacked(body, '{   "hello":', obj0.a, '"world": [');
+        for (uint64 i = 0; i < obj0.b.length; i++) {
+            body = abi.encodePacked(body, '"', obj0.b[i], '"');
+            if (i != obj0.b.length - 1) body = abi.encodePacked(body, ",");
+        }
+        body = abi.encodePacked(body, "]}");
         return body;
     }
 }
-

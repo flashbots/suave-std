@@ -2,9 +2,11 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"text/template"
 	"text/template/parse"
@@ -28,12 +30,27 @@ type functionDef struct {
 	Inputs   []string `toml:"inputs"`
 }
 
+var (
+	outputPathFlag string
+	formatFlag     bool
+)
+
 func main() {
-	if len(os.Args) != 2 {
-		panic("usage: template.json <config.toml>")
+	flag.StringVar(&outputPathFlag, "output", "", "output path")
+	flag.BoolVar(&formatFlag, "format", false, "whether to format the output")
+	flag.Parse()
+
+	if outputPathFlag != "" {
+		// always format if we write to file
+		formatFlag = true
 	}
 
-	tomlData, err := os.ReadFile(os.Args[1])
+	args := flag.Args()
+	if len(args) != 1 {
+		panic("usage: <config.toml>")
+	}
+
+	tomlData, err := os.ReadFile(args[0])
 	if err != nil {
 		panic(err)
 	}
@@ -67,7 +84,20 @@ func main() {
 		s.Encode(name, fn.Inputs, argType, fn.Template)
 	}
 
-	fmt.Println(s.Render())
+	str := s.Render()
+	if formatFlag {
+		var err error
+		if str, err = formatSolidity(str); err != nil {
+			panic(err)
+		}
+	}
+	if outputPathFlag != "" {
+		if err := writeFile(outputPathFlag, []byte(str)); err != nil {
+			panic(err)
+		}
+	} else {
+		fmt.Println(str)
+	}
 }
 
 type state struct {
@@ -110,10 +140,6 @@ func (s *state) Render() string {
 	}
 
 	str := outputRaw.String()
-	if str, err = formatSolidity(str); err != nil {
-		panic(err)
-	}
-
 	return str
 }
 
@@ -215,7 +241,7 @@ func (s *encodeFuncState) Walk(structName []string, typ *abi.Type, templateStr s
 	s.addStmt(`bytes memory body;`)
 
 	// body
-	s.walk(&refType{Type: typ, name: "obj"}, node)
+	s.walk(&refType{Type: typ, name: ""}, node)
 
 	// end of the function
 	s.addStmt(`return body;`)
@@ -286,7 +312,7 @@ func (s *encodeFuncState) walkRange(typ *refType, r *parse.RangeNode) {
 	s.walk(&refType{Type: item.Type, name: item.name + "[i]"}, r.List)
 
 	// add , if not the last item
-	s.addStmt(`if (i != ` + item.name + `.length-1) {`)
+	s.addStmt(`if (i < ` + item.name + `.length-1) {`)
 	s.addBlob("','")
 	s.addStmt(`}`)
 
@@ -312,18 +338,36 @@ func (s *encodeFuncState) walkIfOrWith(typ *refType, pipe *parse.PipeNode, list,
 	}
 }
 
+func mergeNames(a, b string) string {
+	if a == "" {
+		return b
+	}
+	return a + "." + b
+}
+
 func (s *encodeFuncState) evalCommand(typ *refType, cmd *parse.CommandNode) *refType {
 	firstWord := cmd.Args[0]
 	switch obj := firstWord.(type) {
 	case *parse.FieldNode:
-		name := obj.Ident[0]
-		// figure out if the item is on the typ
-		for _, a := range typ.TupleElems() {
-			if a.Name == name {
-				return &refType{Type: a.Elem, name: typ.name + "." + a.Name}
+		for _, iden := range obj.Ident {
+			// search the identifier in the struct, it must be a tuple
+			if typ.Type.Kind() != abi.KindTuple {
+				panic("not a tuple")
+			}
+
+			found := false
+			for _, elem := range typ.TupleElems() {
+				if elem.Name == iden {
+					typ = &refType{Type: elem.Elem, name: mergeNames(typ.name, elem.Name)}
+					found = true
+					break
+				}
+			}
+			if !found {
+				panic(fmt.Sprintf("field %s not found in %s", iden, typ.name))
 			}
 		}
-		panic(fmt.Sprintf("field %s not found in %s", name, typ.name))
+		return typ
 
 	case *parse.DotNode:
 		return typ
@@ -334,6 +378,11 @@ func (s *encodeFuncState) evalCommand(typ *refType, cmd *parse.CommandNode) *ref
 		if !ok {
 			panic(fmt.Sprintf("function %s not found", obj.Ident))
 		}
+
+		fmt.Println("-- typ --")
+		fmt.Println(cmd.Args)
+		fmt.Println(typ)
+		fmt.Println(obj.Ident)
 
 		eFn := fn.(func(typ *refType) string)
 		return &refType{name: eFn(typ)}
@@ -403,4 +452,18 @@ func execForgeCommand(args []string, stdin string) (string, error) {
 	}
 
 	return outBuf.String(), nil
+}
+
+// writeFile creates the parent directory if not found
+// and then writes the file to the path.
+func writeFile(path string, content []byte) error {
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(path, content, 0644); err != nil {
+		return err
+	}
+	return nil
 }

@@ -1,0 +1,24 @@
+contract_name = "BundleEncoder"
+
+[structs.BundleObj]
+type = "tuple(uint64 blockNumber, uint64 minTimestamp, uint64 maxTimestamp, bytes[] txns)"
+
+[functions.encode]
+inputs = ["BundleObj"]
+template = '''
+{"jsonrpc":"2.0","method":"eth_sendBundle","params":[
+{
+   "blockNumber": "{{toHexString .obj0.blockNumber}}",
+   "txns": [
+      {{range .obj0.txns}}
+      "{{toHexString .}}",
+      {{end}}
+   ]
+   {{if .obj0.minTimestamp}}
+   ,"minTimestamp": "{{toString .obj0.minTimestamp}}"
+   {{end}}
+   {{if .obj0.maxTimestamp}}
+   ,"maxTimestamp": "{{toString .obj0.maxTimestamp}}"
+   {{end}}
+}],"id":1}
+'''

@@ -1,12 +1,14 @@
 contract_name = "BundleEncoder"
 
 [structs.Bundle]
-type = "tuple(string a)"
+type = "tuple(string a, string[] b, uint64 c)"
 
 [functions.encode]
 inputs = ["Bundle"]
 template = '''
 {
    "hello": {{.obj0.a}}
+   "world": [{{range .obj0.b}}"{{toString .}}"{{end}}],
+   "number": {{toString .obj0.c}}
 }
 '''
