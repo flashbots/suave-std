@@ -41,10 +41,8 @@ library Registry {
         deployCode(Suave.CONFIDENTIAL_INPUTS, type(ConfidentialInputsWrapper).creationCode);
     }
 
-    address constant dummyAddr = 0x1111000000000000000000000000000000000000;
-
     function deployCode(address where, bytes memory creationCode) internal {
-        vm.etch(dummyAddr, creationCode);
+        vm.etch(where, creationCode);
         (, bytes memory runtimeBytecode) = dummyAddr.call("");
 
         vm.etch(where, runtimeBytecode);
