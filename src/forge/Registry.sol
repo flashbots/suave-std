@@ -5,6 +5,7 @@ pragma solidity ^0.8.8;
 import "../suavelib/Suave.sol";
 import "./Connector.sol";
 import "./ConfidentialInputs.sol";
+import "./SuaveAddrs.sol";
 
 interface registryVM {
     function etch(address, bytes calldata) external;
@@ -19,23 +20,11 @@ library Registry {
     }
 
     function enable() public {
-        enableLib(Suave.IS_CONFIDENTIAL_ADDR);
-        enableLib(Suave.BUILD_ETH_BLOCK);
-        enableLib(Suave.CONFIDENTIAL_RETRIEVE);
-        enableLib(Suave.CONFIDENTIAL_STORE);
-        enableLib(Suave.DO_HTTPREQUEST);
-        enableLib(Suave.ETHCALL);
-        enableLib(Suave.EXTRACT_HINT);
-        enableLib(Suave.FETCH_DATA_RECORDS);
-        enableLib(Suave.FILL_MEV_SHARE_BUNDLE);
-        enableLib(Suave.NEW_BUILDER);
-        enableLib(Suave.NEW_DATA_RECORD);
-        enableLib(Suave.SIGN_ETH_TRANSACTION);
-        enableLib(Suave.SIGN_MESSAGE);
-        enableLib(Suave.SIMULATE_BUNDLE);
-        enableLib(Suave.SIMULATE_TRANSACTION);
-        enableLib(Suave.SUBMIT_BUNDLE_JSON_RPC);
-        enableLib(Suave.SUBMIT_ETH_BLOCK_TO_RELAY);
+        // enable all suave libraries
+        address[] memory addrList = SuaveAddrs.getSuaveAddrs();
+        for (uint256 i = 0; i < addrList.length; i++) {
+            enableLib(addrList[i]);
+        }
 
         // enable is confidential wrapper
         vm.etch(Suave.CONFIDENTIAL_INPUTS, type(ConfidentialInputsWrapper).runtimeCode);

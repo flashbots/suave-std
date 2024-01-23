@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -20,19 +19,13 @@ func main() {
 	flag.BoolVar(&applyFlag, "apply", false, "write to file")
 	flag.Parse()
 
-	bytecode, err := getForgeConnectorBytecode()
-	if err != nil {
-		fmt.Printf("failed to get forge wrapper bytecode: %v\n", err)
-		os.Exit(1)
-	}
-
 	precompileNames, err := getPrecompileNames()
 	if err != nil {
 		fmt.Printf("failed to get precompile names: %v\n", err)
 		os.Exit(1)
 	}
 
-	if err := applyTemplate(bytecode, precompileNames); err != nil {
+	if err := applyTemplate(precompileNames); err != nil {
 		fmt.Printf("failed to apply template: %v\n", err)
 		os.Exit(1)
 	}
@@ -44,40 +37,24 @@ pragma solidity ^0.8.8;
 
 import "../suavelib/Suave.sol";
 
-interface registryVM {
-    function etch(address, bytes calldata) external;
-}
-
-library Registry {
-    registryVM constant vm = registryVM(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
-
-    function enableLib(address addr) public {
-        // code for Wrapper
-        bytes memory code =
-            hex"{{.Bytecodes.Connector}}";
-        vm.etch(addr, code);
-
-		// enable is confidential wrapper
-		bytes memory confidentialCode =
-			hex"{{.Bytecodes.Confidential}}";
-		vm.etch(Suave.CONFIDENTIAL_INPUTS, confidentialCode);
-    }
-
-    function enable() public {
-		{{range .PrecompileNames}}
-		enableLib(Suave.{{.}});
+library SuaveAddrs {
+	function getSuaveAddrs() external pure returns (address[] memory) {
+		address[] memory addrList = new address[]({{ len .PrecompileNames }});
+		{{range $indx, $elem := .PrecompileNames}}
+		addrList[{{ $indx }}] = Suave.{{ $elem}};
 		{{- end}}
-    }
+
+		return addrList;
+	}
 }`
 
-func applyTemplate(bytecodes *forgeWrapperBytecodes, precompileNames []string) error {
+func applyTemplate(precompileNames []string) error {
 	t, err := template.New("template").Parse(templateFile)
 	if err != nil {
 		return err
 	}
 
 	input := map[string]interface{}{
-		"Bytecodes":       bytecodes,
 		"PrecompileNames": precompileNames,
 	}
 
@@ -92,76 +69,13 @@ func applyTemplate(bytecodes *forgeWrapperBytecodes, precompileNames []string) e
 	}
 
 	if applyFlag {
-		if err := os.WriteFile(resolvePath("../../src/forge/Registry.sol"), []byte(str), 0644); err != nil {
+		if err := os.WriteFile(resolvePath("../../src/forge/SuaveAddrs.sol"), []byte(str), 0644); err != nil {
 			return err
 		}
 	} else {
 		fmt.Println(str)
 	}
 	return nil
-}
-
-type forgeWrapperBytecodes struct {
-	Connector    string
-	Confidential string
-}
-
-func getForgeConnectorBytecode() (*forgeWrapperBytecodes, error) {
-	mirror := func(from, to string) error {
-		connectorSrc, err := os.ReadFile(resolvePath(from))
-		if err != nil {
-			return err
-		}
-		if err := writeFile(resolvePath(to), connectorSrc); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	// mirror the Connector.sol contract to ./src
-	if err := mirror("../../src/forge/Connector.sol", "./src-forge-test/Connector.sol"); err != nil {
-		return nil, err
-	}
-	// mirror the is confidential solver
-	if err := mirror("../../src/forge/ConfidentialInputs.sol", "./src-forge-test/ConfidentialInputs.sol"); err != nil {
-		return nil, err
-	}
-
-	// compile the Connector contract with forge and the local configuration
-	if _, err := execForgeCommand([]string{"build", "--config-path", resolvePath("./foundry.toml")}, ""); err != nil {
-		return nil, err
-	}
-
-	decodeBytecode := func(name string) (string, error) {
-		abiContent, err := os.ReadFile(resolvePath(name))
-		if err != nil {
-			return "", err
-		}
-
-		var abiArtifact struct {
-			DeployedBytecode struct {
-				Object string
-			}
-		}
-		if err := json.Unmarshal(abiContent, &abiArtifact); err != nil {
-			return "", err
-		}
-
-		bytecode := abiArtifact.DeployedBytecode.Object[2:]
-		return bytecode, nil
-	}
-
-	res := &forgeWrapperBytecodes{}
-	var err error
-
-	if res.Connector, err = decodeBytecode("./out/Connector.sol/Connector.json"); err != nil {
-		return nil, err
-	}
-	if res.Confidential, err = decodeBytecode("./out/ConfidentialInputs.sol/ConfidentialInputsWrapper.json"); err != nil {
-		return nil, err
-	}
-
-	return res, nil
 }
 
 func getPrecompileNames() ([]string, error) {
@@ -220,20 +134,6 @@ func execForgeCommand(args []string, stdin string) (string, error) {
 	}
 
 	return outBuf.String(), nil
-}
-
-// writeFile creates the parent directory if not found
-// and then writes the file to the path.
-func writeFile(path string, content []byte) error {
-	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return err
-	}
-
-	if err := os.WriteFile(path, content, 0644); err != nil {
-		return err
-	}
-	return nil
 }
 
 func resolvePath(path string) string {
