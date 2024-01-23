@@ -31,6 +31,8 @@ contract SuaveEnabled is Test {
 
         Registry.enable();
 
+        // reset the confidential store before each test
+        resetConfidentialStore();
         confInputsWrapper.resetConfidentialInputs();
     }
 
@@ -77,5 +79,14 @@ contract SuaveEnabled is Test {
             }
         }
         return true;
+    }
+
+    function resetConfidentialStore() public {
+        string[] memory inputs = new string[](3);
+        inputs[0] = "suave-geth";
+        inputs[1] = "forge";
+        inputs[2] = "reset-conf-store";
+
+        vm.ffi(inputs);
     }
 }

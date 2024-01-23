@@ -18,6 +18,21 @@ contract TestForge is Test, SuaveEnabled {
         assertEq(keccak256(found), keccak256(value));
     }
 
+    function testConfidentialReset() public {
+        Suave.DataRecord memory record = Suave.newDataRecord(0, addressList, addressList, "namespace");
+
+        bytes memory value = abi.encode("suave works with forge!");
+        Suave.confidentialStore(record.id, "key1", value);
+
+        bytes memory found = Suave.confidentialRetrieve(record.id, "key1");
+        console.logBytes(found);
+
+        resetConfidentialStore();
+
+        bytes memory found2 = Suave.confidentialRetrieve(record.id, "key1");
+        assertEq(found2.length, 0);
+    }
+
     function testConfidentialInputs() public {
         // ensure that the confidential inputs are empty
         bytes memory found = Suave.confidentialInputs();
