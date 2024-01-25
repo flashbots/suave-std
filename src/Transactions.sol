@@ -69,7 +69,14 @@ library Transactions {
         items[5] = RLPWriter.writeAddress(txStruct.to);
         items[6] = RLPWriter.writeUint(txStruct.value);
         items[7] = RLPWriter.writeBytes(txStruct.data);
-        items[8] = RLPWriter.writeBytes(txStruct.accessList);
+
+        // Check if accessList is empty
+        if (txStruct.accessList.length == 0) {
+            items[8] = hex"c0"; // Empty list encoding
+        } else {
+            items[8] = RLPWriter.writeBytes(txStruct.accessList);
+        }
+
         items[9] = RLPWriter.writeBytes(txStruct.v);
         items[10] = RLPWriter.writeBytes(txStruct.r);
         items[11] = RLPWriter.writeBytes(txStruct.s);
