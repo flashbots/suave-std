@@ -56,7 +56,6 @@ library Transactions {
         uint64 nonce;
         bytes data;
         uint64 chainId;
-        bytes accessList;
     }
 
     function encodeRLP(EIP155 memory txStruct) internal pure returns (bytes memory) {
@@ -219,6 +218,36 @@ library Transactions {
         txStruct.v = ls[9].toBytes();
         txStruct.r = ls[10].toBytes();
         txStruct.s = ls[11].toBytes();
+
+        return txStruct;
+    }
+
+    function decodeRLP_EIP1559Request(bytes memory rlp) internal pure returns (EIP1559Request memory) {
+        EIP1559Request memory txStruct;
+
+        bytes memory rlpWithoutPrefix = new bytes(rlp.length - 1);
+
+        for (uint256 i = 0; i < rlp.length - 1; ++i) {
+            rlpWithoutPrefix[i] = rlp[i + 1];
+        }
+
+        RLPReader.RLPItem[] memory ls = rlpWithoutPrefix.toRlpItem().toList();
+        require(ls.length == 8, "invalid transaction");
+
+        txStruct.chainId = uint64(ls[0].toUint());
+        txStruct.nonce = uint64(ls[1].toUint());
+        txStruct.maxPriorityFeePerGas = uint64(ls[2].toUint());
+        txStruct.maxFeePerGas = uint64(ls[3].toUint());
+        txStruct.gas = uint64(ls[4].toUint());
+
+        if (ls[5].toRlpBytes().length == 1) {
+            txStruct.to = address(0);
+        } else {
+            txStruct.to = ls[5].toAddress();
+        }
+
+        txStruct.value = uint64(ls[6].toUint());
+        txStruct.data = ls[7].toBytes();
 
         return txStruct;
     }
