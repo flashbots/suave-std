@@ -206,7 +206,13 @@ library Transactions {
         txStruct.maxPriorityFeePerGas = uint64(ls[2].toUint());
         txStruct.maxFeePerGas = uint64(ls[3].toUint());
         txStruct.gas = uint64(ls[4].toUint());
-        txStruct.to = ls[5].toAddress();
+
+        if (ls[5].toRlpBytes().length == 1) {
+            txStruct.to = address(0);
+        } else {
+            txStruct.to = ls[5].toAddress();
+        }
+
         txStruct.value = uint64(ls[6].toUint());
         txStruct.data = ls[7].toBytes();
         txStruct.accessList = ls[8].toBytes();
