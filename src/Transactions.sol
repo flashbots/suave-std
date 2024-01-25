@@ -32,6 +32,33 @@ library Transactions {
         uint256 chainId;
     }
 
+    struct EIP1559 {
+        address to;
+        uint64 gas;
+        uint64 maxFeePerGas;
+        uint64 maxPriorityFeePerGas;
+        uint64 value;
+        uint64 nonce;
+        bytes data;
+        uint64 chainId;
+        bytes accessList;
+        bytes r;
+        bytes s;
+        bytes v;
+    }
+
+    struct EIP1559Request {
+        address to;
+        uint64 gas;
+        uint64 maxFeePerGas;
+        uint64 maxPriorityFeePerGas;
+        uint64 value;
+        uint64 nonce;
+        bytes data;
+        uint64 chainId;
+        bytes accessList;
+    }
+
     function encodeRLP(EIP155 memory txStruct) internal pure returns (bytes memory) {
         bytes[] memory items = new bytes[](9);
 
