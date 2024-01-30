@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import "./utils/RLPWriter.sol";
 import "Solidity-RLP/RLPReader.sol";
+import "forge-std/console.sol";
 
 library Transactions {
     using RLPReader for RLPReader.RLPItem;
@@ -72,7 +73,6 @@ library Transactions {
         }
         items[4] = RLPWriter.writeUint(txStruct.value);
         items[5] = RLPWriter.writeBytes(txStruct.data);
-        items[6] = RLPWriter.writeBytes(txStruct.v);
         items[7] = RLPWriter.writeBytes(txStruct.r);
         items[8] = RLPWriter.writeBytes(txStruct.s);
 
