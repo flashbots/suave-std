@@ -7,8 +7,16 @@ type = "tuple(string a, string[] b, uint64 c)"
 inputs = ["Bundle"]
 template = '''
 {
-   "hello": {{.obj0.a}}
-   "world": [{{range .obj0.b}}"{{toString .}}"{{end}}],
+   "other": [ {{range .obj0.b}} {{toString .}} {{end}}],
+   "other2": "a b",
    "number": {{toString .obj0.c}}
+}
+'''
+
+[functions.decode]
+output = "Bundle"
+template = '''
+{
+   "number": {{.obj0.number}}
 }
 '''
