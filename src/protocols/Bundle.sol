@@ -13,32 +13,19 @@ library Bundle {
         bytes[] txns;
     }
 
-    function sendBundle(
-        string memory url,
-        BundleObj memory bundle
-    ) internal view returns (bytes memory) {
+    function sendBundle(string memory url, BundleObj memory bundle) internal view returns (bytes memory) {
         Suave.HttpRequest memory request = encodeBundle(bundle);
         request.url = url;
         return Suave.doHTTPRequest(request);
     }
 
-    function encodeBundle(
-        BundleObj memory args
-    ) internal pure returns (Suave.HttpRequest memory) {
+    function encodeBundle(BundleObj memory args) internal pure returns (Suave.HttpRequest memory) {
         require(args.txns.length > 0, "Bundle: no txns");
 
-        bytes memory params = abi.encodePacked(
-            '{"blockNumber": "',
-            LibString.toHexString(args.blockNumber),
-            '", "txs": ['
-        );
+        bytes memory params =
+            abi.encodePacked('{"blockNumber": "', LibString.toHexString(args.blockNumber), '", "txs": [');
         for (uint256 i = 0; i < args.txns.length; i++) {
-            params = abi.encodePacked(
-                params,
-                '"',
-                LibString.toHexString(args.txns[i]),
-                '"'
-            );
+            params = abi.encodePacked(params, '"', LibString.toHexString(args.txns[i]), '"');
             if (i < args.txns.length - 1) {
                 params = abi.encodePacked(params, ",");
             } else {
@@ -46,26 +33,15 @@ library Bundle {
             }
         }
         if (args.minTimestamp > 0) {
-            params = abi.encodePacked(
-                params,
-                ', "minTimestamp": ',
-                LibString.toString(args.minTimestamp)
-            );
+            params = abi.encodePacked(params, ', "minTimestamp": ', LibString.toString(args.minTimestamp));
         }
         if (args.maxTimestamp > 0) {
-            params = abi.encodePacked(
-                params,
-                ', "maxTimestamp": ',
-                LibString.toString(args.maxTimestamp)
-            );
+            params = abi.encodePacked(params, ', "maxTimestamp": ', LibString.toString(args.maxTimestamp));
         }
         params = abi.encodePacked(params, "}");
 
-        bytes memory body = abi.encodePacked(
-            '{"jsonrpc":"2.0","method":"eth_sendBundle","params":[',
-            params,
-            '],"id":1}'
-        );
+        bytes memory body =
+            abi.encodePacked('{"jsonrpc":"2.0","method":"eth_sendBundle","params":[', params, '],"id":1}');
 
         Suave.HttpRequest memory request;
         request.method = "POST";
