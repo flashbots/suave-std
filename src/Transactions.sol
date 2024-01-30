@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 
 import "./utils/RLPWriter.sol";
 import "Solidity-RLP/RLPReader.sol";
-import "forge-std/console.sol";
 
 library Transactions {
     using RLPReader for RLPReader.RLPItem;
