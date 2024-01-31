@@ -6,6 +6,7 @@ import "../suavelib/Suave.sol";
 import "./Connector.sol";
 import "./ConfidentialInputs.sol";
 import "./SuaveAddrs.sol";
+import "./ConfidentialStore.sol";
 
 interface registryVM {
     function etch(address, bytes calldata) external;
@@ -13,6 +14,7 @@ interface registryVM {
 
 library Registry {
     registryVM constant vm = registryVM(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+    address constant confidentialStoreAddr = 0x0101010101010101010101010101010101010101;
 
     function enable() public {
         // enable all suave libraries
@@ -22,7 +24,23 @@ library Registry {
             vm.etch(addrList[i], type(Connector).runtimeCode);
         }
 
+        // enable the confidential store
+        deployCodeTo(type(ConfidentialStore).creationCode, confidentialStoreAddr);
+
+        // enable the confidential inputs wrapper
+        vm.etch(Suave.CONFIDENTIAL_RETRIEVE, type(ConfidentialStoreWrapper).runtimeCode);
+        vm.etch(Suave.CONFIDENTIAL_STORE, type(ConfidentialStoreWrapper).runtimeCode);
+        vm.etch(Suave.NEW_DATA_RECORD, type(ConfidentialStoreWrapper).runtimeCode);
+        vm.etch(Suave.FETCH_DATA_RECORDS, type(ConfidentialStoreWrapper).runtimeCode);
+
         // enable is confidential wrapper
         vm.etch(Suave.CONFIDENTIAL_INPUTS, type(ConfidentialInputsWrapper).runtimeCode);
+    }
+
+    function deployCodeTo(bytes memory creationCode, address where) internal {
+        vm.etch(where, creationCode);
+        (bool success, bytes memory runtimeBytecode) = where.call("");
+        require(success, "StdCheats deployCodeTo(string,bytes,uint256,address): Failed to create runtime bytecode.");
+        vm.etch(where, runtimeBytecode);
     }
 }

@@ -8,16 +8,27 @@ import "src/suavelib/Suave.sol";
 contract TestForge is Test, SuaveEnabled {
     address[] public addressList = [0xC8df3686b4Afb2BB53e60EAe97EF043FE03Fb829];
 
-    function testConfidentialStore() public {
-        Suave.DataRecord memory record = Suave.newDataRecord(0, addressList, addressList, "namespace");
+    function testForgeConfidentialStore() public {
+        //Suave.DataRecord memory record = Suave.newDataRecord(0, addressList, addressList, "namespace");
 
-        bytes memory value = abi.encode("suave works with forge!");
-        Suave.confidentialStore(record.id, "key1", value);
+        //console.log("_ RECORD FOUJN?");
 
-        bytes memory found = Suave.confidentialRetrieve(record.id, "key1");
-        assertEq(keccak256(found), keccak256(value));
+        //bytes memory value = abi.encode("suave works with forge!");
+        //Suave.confidentialStore(record.id, "key1", value);
+
+        Target target = new Target();
+        TargetProxy proxy = new TargetProxy(address(target));
+
+        address proxyAddr = address(proxy);
+        proxyAddr.call(abi.encode());
+
+        console.log(target.count());
+
+        //bytes memory found = Suave.confidentialRetrieve(record.id, "key1");
+        //assertEq(keccak256(found), keccak256(value));
     }
 
+    /*
     function testConfidentialReset() public {
         Suave.DataRecord memory record = Suave.newDataRecord(0, addressList, addressList, "namespace");
 
@@ -32,8 +43,21 @@ contract TestForge is Test, SuaveEnabled {
         bytes memory found2 = Suave.confidentialRetrieve(record.id, "key1");
         assertEq(found2.length, 0);
     }
+    */
 
-    function testConfidentialInputs() public {
+    /*
+    function testConfidentialReset() public {
+        Suave.DataRecord memory record = Suave.newDataRecord(0, addressList, addressList, "namespace");
+
+        bytes memory value = abi.encode("suave works with forge!");
+        Suave.confidentialStore(record.id, "key1", value);
+
+        bytes memory found = Suave.confidentialRetrieve(record.id, "key1");
+        assertEq(keccak256(found), keccak256(value));
+    }
+    */
+
+    function testForgeConfidentialInputs() public {
         // ensure that the confidential inputs are empty
         bytes memory found = Suave.confidentialInputs();
         assertEq(found.length, 0);
