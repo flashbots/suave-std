@@ -305,8 +305,6 @@ library Transactions {
         bytes memory rlp = Transactions.encodeRLP(request);
         bytes memory hash = abi.encodePacked(keccak256(rlp));
         bytes memory signature = Suave.signMessage(hash, signingKey);
-
-        // overflow
         (uint8 v, bytes32 r, bytes32 s) = decodeSignature(signature);
 
         response.to = request.to;
