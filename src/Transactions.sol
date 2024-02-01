@@ -296,4 +296,70 @@ library Transactions {
             out := mload(add(inBytes, 32))
         }
     }
+
+    function signTxn(Transactions.EIP1559Request memory request, string memory signingKey)
+        public
+        view
+        returns (Transactions.EIP1559 memory response)
+    {
+        bytes memory rlp = Transactions.encodeRLP(request);
+        bytes memory hash = abi.encodePacked(keccak256(rlp));
+        bytes memory signature = Suave.signMessage(hash, signingKey);
+
+        // overflow
+        (uint8 v, bytes32 r, bytes32 s) = decodeSignature(signature);
+
+        response.to = request.to;
+        response.gas = request.gas;
+        response.maxFeePerGas = request.maxFeePerGas;
+        response.maxPriorityFeePerGas = request.maxPriorityFeePerGas;
+        response.value = request.value;
+        response.nonce = request.nonce;
+        response.data = request.data;
+        response.chainId = request.chainId;
+        response.accessList = request.accessList;
+        response.v = v;
+        response.r = r;
+        response.s = s;
+
+        return response;
+    }
+
+    function signTxn(Transactions.EIP155Request memory request, string memory signingKey)
+        public
+        view
+        returns (Transactions.EIP155 memory response)
+    {
+        bytes memory rlp = Transactions.encodeRLP(request);
+        bytes memory hash = abi.encodePacked(keccak256(rlp));
+        bytes memory signature = Suave.signMessage(hash, signingKey);
+
+        // TODO: check overflow
+        uint64 chainIdMul = uint64(request.chainId) * 2;
+        (uint8 v, bytes32 r, bytes32 s) = decodeSignature(signature);
+
+        uint64 v64 = uint64(v) + 35;
+        v64 += chainIdMul;
+
+        response.to = request.to;
+        response.gas = request.gas;
+        response.gasPrice = request.gasPrice;
+        response.value = request.value;
+        response.nonce = request.nonce;
+        response.data = request.data;
+        response.chainId = request.chainId;
+        response.v = v64;
+        response.r = r;
+        response.s = s;
+
+        return response;
+    }
+
+    function decodeSignature(bytes memory signature) public pure returns (uint8 v, bytes32 r, bytes32 s) {
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            v := byte(0, mload(add(signature, 0x60)))
+        }
+    }
 }
