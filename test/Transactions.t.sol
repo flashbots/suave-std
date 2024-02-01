@@ -16,9 +16,9 @@ contract TestTransactions is Test {
             nonce: 0,
             data: bytes(""),
             chainId: 0,
-            v: abi.encodePacked(hex"1b"),
-            r: abi.encodePacked(hex"9bea4c4daac7c7c52e093e6a4c35dbbcf8856f1af7b059ba20253e70848d094f"),
-            s: abi.encodePacked(hex"8a8fae537ce25ed8cb5af9adac3f141af69bd515bd2ba031522df09b97dd72b1")
+            v: 27,
+            r: hex"9bea4c4daac7c7c52e093e6a4c35dbbcf8856f1af7b059ba20253e70848d094f",
+            s: hex"8a8fae537ce25ed8cb5af9adac3f141af69bd515bd2ba031522df09b97dd72b1"
         });
 
         bytes memory expected = abi.encodePacked(
@@ -34,9 +34,9 @@ contract TestTransactions is Test {
             nonce: 1,
             data: abi.encodePacked(hex"02"),
             chainId: 0,
-            v: abi.encodePacked(hex"1b"),
-            r: abi.encodePacked(hex"754a33a9c37cfcf61cd61939fd93f5fe194b7d1ee6ef07490e8c880f3bd0d87d"),
-            s: abi.encodePacked(hex"715bd50fa2c24e2ce0ea595025a44a39ac238558882f9f07dd885ddc51839419")
+            v: 27,
+            r: hex"754a33a9c37cfcf61cd61939fd93f5fe194b7d1ee6ef07490e8c880f3bd0d87d",
+            s: hex"715bd50fa2c24e2ce0ea595025a44a39ac238558882f9f07dd885ddc51839419"
         });
 
         expected = abi.encodePacked(
@@ -58,9 +58,9 @@ contract TestTransactions is Test {
                 ),
             chainId: 1,
             accessList: bytes(""),
-            v: bytes(""),
-            r: abi.encodePacked(hex"8ee28a85ac42174b9e10c49613c0cddcf5d5a5ecb90bd516f81b45a957a64fe2"),
-            s: abi.encodePacked(hex"05349c1076cc83990f425773d6b5995474782f1fccf1b2e43529ac54ac6ae144")
+            v: 0,
+            r: hex"8ee28a85ac42174b9e10c49613c0cddcf5d5a5ecb90bd516f81b45a957a64fe2",
+            s: hex"05349c1076cc83990f425773d6b5995474782f1fccf1b2e43529ac54ac6ae144"
         });
 
         bytes memory expected = abi.encodePacked(
@@ -81,9 +81,9 @@ contract TestTransactions is Test {
                 ),
             chainId: 1,
             accessList: bytes(""),
-            v: bytes(""),
-            r: abi.encodePacked(hex"8ee28a85ac42174b9e10c49613c0cddcf5d5a5ecb90bd516f81b45a957a64fe2"),
-            s: abi.encodePacked(hex"05349c1076cc83990f425773d6b5995474782f1fccf1b2e43529ac54ac6ae144")
+            v: 0,
+            r: hex"8ee28a85ac42174b9e10c49613c0cddcf5d5a5ecb90bd516f81b45a957a64fe2",
+            s: hex"05349c1076cc83990f425773d6b5995474782f1fccf1b2e43529ac54ac6ae144"
         });
 
         expected = abi.encodePacked(
