@@ -13,7 +13,7 @@ library Bundle {
         bytes[] txns;
     }
 
-    function sendBundle(string memory url, BundleObj memory bundle) internal view returns (bytes memory) {
+    function sendBundle(string memory url, BundleObj memory bundle) internal returns (bytes memory) {
         Suave.HttpRequest memory request = encodeBundle(bundle);
         request.url = url;
         return Suave.doHTTPRequest(request);

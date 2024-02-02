@@ -12,7 +12,7 @@ contract TestConfidentialStore is Test {
         store = new ConfidentialStore();
     }
 
-    function testConfidentialStoreNewRecordAndFetch() public {
+    function testMockConfidentialStoreNewRecordAndFetch() public {
         // This function tests that we can create new data records and fetch them
         store.newDataRecord(0, addressList, addressList, "namespace");
         store.newDataRecord(0, addressList, addressList, "namespace1");
@@ -36,7 +36,7 @@ contract TestConfidentialStore is Test {
         assertEq(records.length, 3);
     }
 
-    function testConfidentialStoreStoreRetrieve() public {
+    function testMockConfidentialStoreStoreRetrieve() public {
         // This function tests that we can store and retrieve a value from the record
         Suave.DataRecord memory record = store.newDataRecord(0, addressList, addressList, "namespace");
 
@@ -45,5 +45,35 @@ contract TestConfidentialStore is Test {
 
         bytes memory found = store.confidentialRetrieve(record.id, "key1");
         assertEq(keccak256(found), keccak256(value));
+    }
+
+    function testMockConfidentialStoreReset() public {
+        // add one record and one stored value
+        Suave.DataRecord memory record = store.newDataRecord(0, addressList, addressList, "namespace");
+        bytes memory value = abi.encodePacked("value");
+        store.confidentialStore(record.id, "key1", value);
+
+        bytes memory found = store.confidentialRetrieve(record.id, "key1");
+        assertEq(keccak256(found), keccak256(value));
+
+        // reset the store
+        store.reset();
+
+        bytes memory found1 = store.confidentialRetrieve(record.id, "key1");
+        assertEq(found1.length, 0);
+
+        Suave.DataRecord[] memory records = store.fetchDataRecords(0, "namespace");
+        assertEq(records.length, 0);
+
+        // validate that if we add new records we can reset again
+        store.newDataRecord(0, addressList, addressList, "namespace");
+
+        records = store.fetchDataRecords(0, "namespace");
+        assertEq(records.length, 1);
+
+        store.reset();
+
+        records = store.fetchDataRecords(0, "namespace");
+        assertEq(records.length, 0);
     }
 }

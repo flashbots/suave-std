@@ -14,7 +14,7 @@ interface registryVM {
 
 library Registry {
     registryVM constant vm = registryVM(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
-    address constant confidentialStoreAddr = 0x0101010101010101010101010101010101010101;
+    address public constant confidentialStoreAddr = 0x0101010101010101010101010101010101010101;
 
     function enable() public {
         // enable all suave libraries
