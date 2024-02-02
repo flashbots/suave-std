@@ -14,16 +14,18 @@ forge install flashbots/suave-std
 
 ### Transactions.sol
 
-Helper library that defines types and encoding/decoding methods for the Ethereum transaction types.
+Helper library that defines types and utilities to interact with Ethereum transaction types.
 
 #### Example usage
+
+Encode an `EIP155` transaction:
 
 ```solidity
 import "suave-std/Transactions.sol";
 
 contract Example {
     function example() {
-        Transactions.Legacy memory legacyTxn0 = Transactions.Legacy({
+        Transactions.EIP155Request memory txn0 = Transactions.EIP155Request({
             to: address(0x095E7BAea6a6c7c4c2DfeB977eFac326aF552d87),
             gas: 50000,
             gasPrice: 10,
@@ -32,10 +34,28 @@ contract Example {
         });
 
         // Encode to RLP
-        bytes memory rlp = Transactions.encodeRLP(legacyTxn0);
+        bytes memory rlp = Transactions.encodeRLP(txn0);
 
         // Decode from RLP
-        Transactions.Legacy memory legacyTxn1 = Transactions.decodeRLP(rlp);
+        Transactions.Legacy memory txn = Transactions.decodeRLP(rlp);
+    }
+}
+```
+
+Sign an `EIP-1559` transaction:
+
+```
+import "suave-std/Transactions.sol";
+
+contract Example {
+    function example() {
+        string memory signingKey = "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291";
+
+        Transactions.EIP1559Request memory txnrequest = Transactions.EIP1559Request({
+            ...
+        })
+
+        Transactions.EIP1559 memory signedTxn = Transactions.signTxn(txnRequest, signingKey);
     }
 }
 ```
