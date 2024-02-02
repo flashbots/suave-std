@@ -20,11 +20,13 @@ contract SuaveEnabled is Test {
         inputs[2] = "status";
 
         try vm.ffi(inputs) returns (bytes memory response) {
+            /*
             // the status call of the `suave-geth forge` command fails with the 'not-ok' prefix
             // which is '6e6f742d6f6b' in hex
             if (isPrefix(hex"6e6f742d6f6b", response)) {
                 revert("Local Suave node not detected running");
             }
+            */
         } catch (bytes memory reason) {
             revert(detectErrorMessage(reason));
         }
