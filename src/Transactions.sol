@@ -298,7 +298,7 @@ library Transactions {
     }
 
     function signTxn(Transactions.EIP1559Request memory request, string memory signingKey)
-        public
+        internal
         view
         returns (Transactions.EIP1559 memory response)
     {
@@ -324,7 +324,7 @@ library Transactions {
     }
 
     function signTxn(Transactions.EIP155Request memory request, string memory signingKey)
-        public
+        internal
         view
         returns (Transactions.EIP155 memory response)
     {
