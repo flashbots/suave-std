@@ -16,7 +16,7 @@ interface ConfidentialStoreI {
 
 contract SuaveEnabled is Test {
     ConfidentialInputsWrapperI constant confInputsWrapper = ConfidentialInputsWrapperI(Suave.CONFIDENTIAL_INPUTS);
-    ConfidentialStoreI constant confStoreWrapper = ConfidentialStoreI(0x0101010101010101010101010101010101010101);
+    ConfidentialStoreI constant confStoreWrapper = ConfidentialStoreI(Registry.confidentialStoreAddr);
 
     function setUp() public {
         string[] memory inputs = new string[](3);

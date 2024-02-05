@@ -4,9 +4,9 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "src/forge/ConfidentialStore.sol";
 
-contract TestConfidentialStore is Test {
+contract TestMockConfidentialStore is Test {
     ConfidentialStore store;
-    address[] public addressList = [0xC8df3686b4Afb2BB53e60EAe97EF043FE03Fb829];
+    address[] public addressList = [Suave.ANYALLOWED];
 
     function setUp() public {
         store = new ConfidentialStore();
@@ -45,6 +45,23 @@ contract TestConfidentialStore is Test {
 
         bytes memory found = store.confidentialRetrieve(record.id, "key1");
         assertEq(keccak256(found), keccak256(value));
+    }
+
+    function testMockConfidentialStoreLocalAllowedAddress() public {
+        // This function tests that we can store and retrieve a value from the record
+        address[] memory allowed = new address[](1);
+        allowed[0] = address(this);
+
+        Suave.DataRecord memory record = store.newDataRecord(0, allowed, allowed, "namespace");
+
+        bytes memory value = abi.encodePacked("value");
+        store.confidentialStore(record.id, "key1", value);
+
+        // test that another address cannot store
+        vm.startPrank(0x0000000000000000000000000000000000000000);
+        vm.expectRevert();
+        store.confidentialStore(record.id, "key1", value);
+        vm.stopPrank();
     }
 
     function testMockConfidentialStoreReset() public {

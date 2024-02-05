@@ -7,6 +7,7 @@ import "./Connector.sol";
 import "./ConfidentialInputs.sol";
 import "./SuaveAddrs.sol";
 import "./ConfidentialStore.sol";
+import "./ConfidentialStoreConnector.sol";
 
 interface registryVM {
     function etch(address, bytes calldata) external;
@@ -28,10 +29,10 @@ library Registry {
         deployCodeTo(type(ConfidentialStore).creationCode, confidentialStoreAddr);
 
         // enable the confidential inputs wrapper
-        vm.etch(Suave.CONFIDENTIAL_RETRIEVE, type(ConfidentialStoreWrapper).runtimeCode);
-        vm.etch(Suave.CONFIDENTIAL_STORE, type(ConfidentialStoreWrapper).runtimeCode);
-        vm.etch(Suave.NEW_DATA_RECORD, type(ConfidentialStoreWrapper).runtimeCode);
-        vm.etch(Suave.FETCH_DATA_RECORDS, type(ConfidentialStoreWrapper).runtimeCode);
+        vm.etch(Suave.CONFIDENTIAL_RETRIEVE, type(ConfidentialStoreConnector).runtimeCode);
+        vm.etch(Suave.CONFIDENTIAL_STORE, type(ConfidentialStoreConnector).runtimeCode);
+        vm.etch(Suave.NEW_DATA_RECORD, type(ConfidentialStoreConnector).runtimeCode);
+        vm.etch(Suave.FETCH_DATA_RECORDS, type(ConfidentialStoreConnector).runtimeCode);
 
         // enable is confidential wrapper
         vm.etch(Suave.CONFIDENTIAL_INPUTS, type(ConfidentialInputsWrapper).runtimeCode);

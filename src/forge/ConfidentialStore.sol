@@ -4,9 +4,12 @@ pragma solidity ^0.8.8;
 import "../suavelib/Suave.sol";
 import "forge-std/Test.sol";
 
+// ConfidentialStore is an implementation of the confidential store in Solidity.
 contract ConfidentialStore is Test {
     mapping(bytes32 => Suave.DataRecord[]) private dataRecordsByConditionAndNamespace;
     mapping(Suave.DataId => mapping(string => bytes)) private dataRecordsContent;
+    mapping(Suave.DataId => Suave.DataRecord) private dataRecords;
+
     uint64 private numRecords;
 
     type DataId is bytes16;
@@ -34,6 +37,9 @@ contract ConfidentialStore is Test {
         newRecord.allowedStores = allowedStores;
         newRecord.version = dataType;
 
+        // Store the data record metadata
+        dataRecords[id] = newRecord;
+
         // Use a composite index to store the records for the 'fetchDataRecords' function
         bytes32 key = keccak256(abi.encodePacked(decryptionCondition, dataType));
         dataRecordsByConditionAndNamespace[key].push(newRecord);
@@ -47,60 +53,32 @@ contract ConfidentialStore is Test {
     }
 
     function confidentialStore(Suave.DataId dataId, string memory key, bytes memory value) public {
-        dataRecordsContent[dataId][key] = value;
+        address[] memory allowedStores = dataRecords[dataId].allowedStores;
+        for (uint256 i = 0; i < allowedStores.length; i++) {
+            if (allowedStores[i] == msg.sender || allowedStores[i] == Suave.ANYALLOWED) {
+                dataRecordsContent[dataId][key] = value;
+                return;
+            }
+        }
+
+        revert("Not allowed to store");
     }
 
     function confidentialRetrieve(Suave.DataId dataId, string memory key) public view returns (bytes memory) {
-        return dataRecordsContent[dataId][key];
+        address[] memory allowedPeekers = dataRecords[dataId].allowedPeekers;
+        for (uint256 i = 0; i < allowedPeekers.length; i++) {
+            if (allowedPeekers[i] == msg.sender || allowedPeekers[i] == Suave.ANYALLOWED) {
+                return dataRecordsContent[dataId][key];
+            }
+        }
+
+        revert("Not allowed to retrieve");
     }
 
     function reset() public {
         (, bytes32[] memory writes) = vm.accesses(address(this));
         for (uint256 i = 0; i < writes.length; i++) {
             vm.store(address(this), writes[i], 0);
-        }
-    }
-}
-
-contract ConfidentialStoreWrapper is Test {
-    fallback() external {
-        address confidentialStoreAddr = 0x0101010101010101010101010101010101010101;
-
-        address addr = address(this);
-        bytes4 sig;
-
-        // You can use 'forge selectors list' to retrieve the function signatures
-        if (addr == Suave.CONFIDENTIAL_STORE) {
-            sig = 0xd22a3b0b;
-        } else if (addr == Suave.CONFIDENTIAL_RETRIEVE) {
-            sig = 0xe3b417bc;
-        } else if (addr == Suave.FETCH_DATA_RECORDS) {
-            sig = 0xccb885c4;
-        } else if (addr == Suave.NEW_DATA_RECORD) {
-            sig = 0xe3fbcfc3;
-        } else {
-            revert("function signature not found in the confidential store");
-        }
-
-        bytes memory input = msg.data;
-
-        // call 'confidentialStore' with the selector and the input data.
-        (bool success, bytes memory output) = confidentialStoreAddr.call(abi.encodePacked(sig, input));
-        if (!success) {
-            revert("Call to confidentialStore failed");
-        }
-
-        if (addr == Suave.CONFIDENTIAL_RETRIEVE) {
-            // special case we have to unloop the value from the abi
-            // since it comes encoded as tuple() but we return the value normally
-            // this was a special case that was not fixed yet in suave-geth.
-            output = abi.decode(output, (bytes));
-        }
-
-        assembly {
-            let location := output
-            let length := mload(output)
-            return(add(location, 0x20), length)
         }
     }
 }
