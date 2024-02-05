@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.8;
 
+import "./ConfidentialStore.sol";
 import "../suavelib/Suave.sol";
 
 contract ConfidentialStoreConnector {
@@ -10,15 +11,14 @@ contract ConfidentialStoreConnector {
         address addr = address(this);
         bytes4 sig;
 
-        // You can use 'forge selectors list' to retrieve the function signatures
         if (addr == Suave.CONFIDENTIAL_STORE) {
-            sig = 0xd22a3b0b;
+            sig = ConfidentialStore.confidentialStore.selector;
         } else if (addr == Suave.CONFIDENTIAL_RETRIEVE) {
-            sig = 0xe3b417bc;
+            sig = ConfidentialStore.confidentialRetrieve.selector;
         } else if (addr == Suave.FETCH_DATA_RECORDS) {
-            sig = 0xccb885c4;
+            sig = ConfidentialStore.fetchDataRecords.selector;
         } else if (addr == Suave.NEW_DATA_RECORD) {
-            sig = 0xe3fbcfc3;
+            sig = ConfidentialStore.newDataRecord.selector;
         } else {
             revert("function signature not found in the confidential store");
         }
