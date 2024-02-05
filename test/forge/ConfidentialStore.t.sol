@@ -76,8 +76,9 @@ contract TestMockConfidentialStore is Test {
         // reset the store
         store.reset();
 
-        bytes memory found1 = store.confidentialRetrieve(record.id, "key1");
-        assertEq(found1.length, 0);
+        // it reverts because it cannot find the metadata of 'record'.
+        vm.expectRevert();
+        store.confidentialRetrieve(record.id, "key1");
 
         Suave.DataRecord[] memory records = store.fetchDataRecords(0, "namespace");
         assertEq(records.length, 0);
