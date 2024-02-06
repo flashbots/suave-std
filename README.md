@@ -84,6 +84,23 @@ contract Example {
 }
 ```
 
+### protocols/JsonRPC.sol
+
+Helper library to interact with the Ethereum JsonRPC protocol.
+
+#### Example usage
+
+```solidity
+import "suave-std/protocols/JsonRPC.sol";
+
+contract Example {
+    function example() {
+        JsonRPC jsonrpc = new JsonRPC("http://...");
+        jsonrpc.nonce(address(this));
+    }
+}
+```
+
 ## Forge integration
 
 In order to use `forge`, you need to have a running `Suave` node and the `suave` binary in your path.
