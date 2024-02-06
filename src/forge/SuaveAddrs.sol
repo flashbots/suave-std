@@ -6,7 +6,7 @@ import "../suavelib/Suave.sol";
 
 library SuaveAddrs {
     function getSuaveAddrs() external pure returns (address[] memory) {
-        address[] memory addrList = new address[](17);
+        address[] memory addrList = new address[](18);
 
         addrList[0] = Suave.IS_CONFIDENTIAL_ADDR;
         addrList[1] = Suave.BUILD_ETH_BLOCK;
@@ -19,12 +19,13 @@ library SuaveAddrs {
         addrList[8] = Suave.FILL_MEV_SHARE_BUNDLE;
         addrList[9] = Suave.NEW_BUILDER;
         addrList[10] = Suave.NEW_DATA_RECORD;
-        addrList[11] = Suave.SIGN_ETH_TRANSACTION;
-        addrList[12] = Suave.SIGN_MESSAGE;
-        addrList[13] = Suave.SIMULATE_BUNDLE;
-        addrList[14] = Suave.SIMULATE_TRANSACTION;
-        addrList[15] = Suave.SUBMIT_BUNDLE_JSON_RPC;
-        addrList[16] = Suave.SUBMIT_ETH_BLOCK_TO_RELAY;
+        addrList[11] = Suave.PRIVATE_KEY_GEN;
+        addrList[12] = Suave.SIGN_ETH_TRANSACTION;
+        addrList[13] = Suave.SIGN_MESSAGE;
+        addrList[14] = Suave.SIMULATE_BUNDLE;
+        addrList[15] = Suave.SIMULATE_TRANSACTION;
+        addrList[16] = Suave.SUBMIT_BUNDLE_JSON_RPC;
+        addrList[17] = Suave.SUBMIT_ETH_BLOCK_TO_RELAY;
 
         return addrList;
     }
