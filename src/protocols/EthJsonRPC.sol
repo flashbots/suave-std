@@ -5,7 +5,7 @@ import "src/suavelib/Suave.sol";
 import "solady/src/utils/JSONParserLib.sol";
 import "solady/src/utils/LibString.sol";
 
-contract JsonRPC {
+contract EthJsonRPC {
     using JSONParserLib for *;
 
     string endpoint;
