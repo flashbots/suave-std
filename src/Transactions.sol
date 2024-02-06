@@ -299,7 +299,6 @@ library Transactions {
 
     function signTxn(Transactions.EIP1559Request memory request, string memory signingKey)
         internal
-        view
         returns (Transactions.EIP1559 memory response)
     {
         bytes memory rlp = Transactions.encodeRLP(request);
@@ -325,7 +324,6 @@ library Transactions {
 
     function signTxn(Transactions.EIP155Request memory request, string memory signingKey)
         internal
-        view
         returns (Transactions.EIP155 memory response)
     {
         bytes memory rlp = Transactions.encodeRLP(request);
