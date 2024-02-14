@@ -84,27 +84,30 @@ contract Example {
 }
 ```
 
-<<<<<<< HEAD
 ### protocols/EthJsonRPC.sol
 
 Helper library to interact with the Ethereum JsonRPC protocol.
-=======
-### protocols/ChatGPT.sol
-
-Helper library to send completion requests to ChatGPT.
->>>>>>> main
 
 #### Example usage
 
 ```solidity
-<<<<<<< HEAD
 import "suave-std/protocols/EthJsonRPC.sol";
 
 contract Example {
     function example() {
-        EthJsonRPC jsonrpc = new EthJsonRPC("http://...");
-        jsonrpc.nonce(address(this));
-=======
+        ChatGPT.Message[] memory messages = new ChatGPT.Message[](1);
+        messages[0] = ChatGPT.Message(ChatGPT.Role.User, "How do I write a Suapp with suave-std?");
+
+        chatgpt.complete(messages);
+    }
+}
+```
+
+### protocols/ChatGPT.sol
+
+Helper library to send completion requests to ChatGPT.
+
+```solidity
 import "suave-std/protocols/ChatGPT.sol";
 
 contract Example {
@@ -113,7 +116,6 @@ contract Example {
         messages[0] = ChatGPT.Message(ChatGPT.Role.User, "How do I write a Suapp with suave-std?");
 
         chatgpt.complete(messages);
->>>>>>> main
     }
 }
 ```
