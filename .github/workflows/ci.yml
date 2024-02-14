@@ -19,7 +19,7 @@ jobs:
 
       - name: Run suave
         run: |
-          suave-geth --suave.dev &
+          suave-geth --suave.dev --suave.eth.external-whitelist='*' &
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -30,4 +30,6 @@ jobs:
         run: forge install
 
       - name: Run tests
+        env:
+          CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
         run: forge test --ffi

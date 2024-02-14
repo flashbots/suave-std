@@ -84,6 +84,25 @@ contract Example {
 }
 ```
 
+### protocols/ChatGPT.sol
+
+Helper library to send completion requests to ChatGPT.
+
+#### Example usage
+
+```solidity
+import "suave-std/protocols/ChatGPT.sol";
+
+contract Example {
+    function example() {
+        ChatGPT.Message[] memory messages = new ChatGPT.Message[](1);
+        messages[0] = ChatGPT.Message(ChatGPT.Role.User, "How do I write a Suapp with suave-std?");
+
+        chatgpt.complete(messages);
+    }
+}
+```
+
 ## Forge integration
 
 In order to use `forge`, you need to have a running `Suave` node and the `suave` binary in your path.
