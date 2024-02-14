@@ -84,18 +84,18 @@ contract Example {
 }
 ```
 
-### protocols/JsonRPC.sol
+### protocols/EthJsonRPC.sol
 
 Helper library to interact with the Ethereum JsonRPC protocol.
 
 #### Example usage
 
 ```solidity
-import "suave-std/protocols/JsonRPC.sol";
+import "suave-std/protocols/EthJsonRPC.sol";
 
 contract Example {
     function example() {
-        JsonRPC jsonrpc = new JsonRPC("http://...");
+        EthJsonRPC jsonrpc = new EthJsonRPC("http://...");
         jsonrpc.nonce(address(this));
     }
 }
