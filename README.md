@@ -95,10 +95,8 @@ import "suave-std/protocols/EthJsonRPC.sol";
 
 contract Example {
     function example() {
-        ChatGPT.Message[] memory messages = new ChatGPT.Message[](1);
-        messages[0] = ChatGPT.Message(ChatGPT.Role.User, "How do I write a Suapp with suave-std?");
-
-        chatgpt.complete(messages);
+        EthJsonRPC jsonrpc = new EthJsonRPC("http://...");
+        jsonrpc.nonce(address(this));
     }
 }
 ```
