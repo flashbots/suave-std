@@ -1,3 +1,4 @@
-[profile.ci.fuzz]
+[profile.default]
 runs = 10_000
 solc_version = "0.8.23"
+fs_permissions = [{ access = "read", path = "./test" }]
