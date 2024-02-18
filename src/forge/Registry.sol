@@ -4,7 +4,7 @@ pragma solidity ^0.8.8;
 
 import "../suavelib/Suave.sol";
 import "./Connector.sol";
-import "./ConfidentialInputs.sol";
+import "./ContextConnector.sol";
 import "./SuaveAddrs.sol";
 import "./ConfidentialStore.sol";
 import "./ConfidentialStoreConnector.sol";
@@ -35,7 +35,7 @@ library Registry {
         vm.etch(Suave.FETCH_DATA_RECORDS, type(ConfidentialStoreConnector).runtimeCode);
 
         // enable is confidential wrapper
-        vm.etch(Suave.CONFIDENTIAL_INPUTS, type(ConfidentialInputsWrapper).runtimeCode);
+        vm.etch(Suave.CONTEXT_GET, type(ContextConnector).runtimeCode);
     }
 
     function deployCodeTo(bytes memory creationCode, address where) internal {
