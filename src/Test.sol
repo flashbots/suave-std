@@ -34,11 +34,6 @@ contract SuaveEnabled is Test {
 
         // reset the confidential store before each test
         resetConfidentialStore();
-        // confInputsWrapper.resetConfidentialInputs();
-    }
-
-    function setConfidentialInputs(bytes memory data) internal {
-        // confInputsWrapper.setConfidentialInputs(data);
     }
 
     function detectErrorMessage(bytes memory reason) internal pure returns (string memory) {
