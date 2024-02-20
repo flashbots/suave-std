@@ -60,6 +60,28 @@ contract Example {
 }
 ```
 
+### Context.sol
+
+Helper library to interact with the Suave context in the MEVM.
+
+Available functions:
+
+- `confidentialInputs()`: Returns the confidential inputs of the offchain request.
+- `kettleAddress()`: Address of the kettle that is executing the offchain request.
+
+#### Example usage
+
+```solidity
+import "suave-std/Context.sol";
+
+contract Example {
+    function example() {
+        bytes memory inputs = Context.confidentialInputs();
+        address kettle = Context.kettleAddress();
+    }
+}
+```
+
 ### protocols/MevShare.sol
 
 Helper library to send bundle requests with the Mev-Share protocol.
@@ -84,11 +106,26 @@ contract Example {
 }
 ```
 
+### protocols/EthJsonRPC.sol
+
+Helper library to interact with the Ethereum JsonRPC protocol.
+
+#### Example usage
+
+```solidity
+import "suave-std/protocols/EthJsonRPC.sol";
+
+contract Example {
+    function example() {
+        EthJsonRPC jsonrpc = new EthJsonRPC("http://...");
+        jsonrpc.nonce(address(this));
+    }
+}
+```
+
 ### protocols/ChatGPT.sol
 
 Helper library to send completion requests to ChatGPT.
-
-#### Example usage
 
 ```solidity
 import "suave-std/protocols/ChatGPT.sol";
