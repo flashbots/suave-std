@@ -21,10 +21,11 @@ contract SuaveEnabled is Test {
     function setUp() public {
         string[] memory inputs = new string[](2);
         inputs[0] = "suave-geth";
-        inputs[1] = "forge";
+        inputs[1] = "version";
 
-        try vm.ffi(inputs) returns (bytes memory response) {}
-        catch (bytes memory reason) {
+        try vm.ffi(inputs) returns (bytes memory response) {
+            // TODO: validate versions
+        } catch (bytes memory reason) {
             revert(detectErrorMessage(reason));
         }
 
