@@ -10,8 +10,13 @@ interface ConfidentialInputsWrapperI {
     function resetConfidentialInputs() external;
 }
 
+interface ConfidentialStoreI {
+    function reset() external;
+}
+
 contract SuaveEnabled is Test {
     ConfidentialInputsWrapperI constant confInputsWrapper = ConfidentialInputsWrapperI(Suave.CONFIDENTIAL_INPUTS);
+    ConfidentialStoreI constant confStoreWrapper = ConfidentialStoreI(Registry.confidentialStoreAddr);
 
     function setUp() public {
         string[] memory inputs = new string[](2);
@@ -76,11 +81,6 @@ contract SuaveEnabled is Test {
     }
 
     function resetConfidentialStore() public {
-        string[] memory inputs = new string[](3);
-        inputs[0] = "suave-geth";
-        inputs[1] = "forge";
-        inputs[2] = "reset-conf-store";
-
-        vm.ffi(inputs);
+        confStoreWrapper.reset();
     }
 }

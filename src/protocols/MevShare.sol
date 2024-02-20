@@ -71,7 +71,7 @@ library MevShare {
         return request;
     }
 
-    function sendBundle(string memory url, Bundle memory bundle) internal view {
+    function sendBundle(string memory url, Bundle memory bundle) internal {
         Suave.HttpRequest memory request = encodeBundle(bundle);
         request.url = url;
         Suave.doHTTPRequest(request);

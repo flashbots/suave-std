@@ -8,7 +8,25 @@ import "src/suavelib/Suave.sol";
 contract TestForge is Test, SuaveEnabled {
     address[] public addressList = [0xC8df3686b4Afb2BB53e60EAe97EF043FE03Fb829];
 
-    function testConfidentialStore() public {
+    function testForgeConfidentialStoreFetch() public {
+        Suave.newDataRecord(0, addressList, addressList, "namespace");
+
+        Suave.DataRecord[] memory records = Suave.fetchDataRecords(0, "namespace");
+        assertEq(records.length, 1);
+
+        Suave.newDataRecord(0, addressList, addressList, "namespace");
+        Suave.newDataRecord(0, addressList, addressList, "namespace");
+
+        Suave.DataRecord[] memory records2 = Suave.fetchDataRecords(0, "namespace");
+        assertEq(records2.length, 3);
+
+        resetConfidentialStore();
+
+        Suave.DataRecord[] memory records3 = Suave.fetchDataRecords(0, "namespace");
+        assertEq(records3.length, 0);
+    }
+
+    function testForgeConfidentialStoreRecordStore() public {
         Suave.DataRecord memory record = Suave.newDataRecord(0, addressList, addressList, "namespace");
 
         bytes memory value = abi.encode("suave works with forge!");
@@ -18,22 +36,7 @@ contract TestForge is Test, SuaveEnabled {
         assertEq(keccak256(found), keccak256(value));
     }
 
-    function testConfidentialReset() public {
-        Suave.DataRecord memory record = Suave.newDataRecord(0, addressList, addressList, "namespace");
-
-        bytes memory value = abi.encode("suave works with forge!");
-        Suave.confidentialStore(record.id, "key1", value);
-
-        bytes memory found = Suave.confidentialRetrieve(record.id, "key1");
-        console.logBytes(found);
-
-        resetConfidentialStore();
-
-        bytes memory found2 = Suave.confidentialRetrieve(record.id, "key1");
-        assertEq(found2.length, 0);
-    }
-
-    function testConfidentialInputs() public {
+    function testForgeConfidentialInputs() public {
         // ensure that the confidential inputs are empty
         bytes memory found = Suave.confidentialInputs();
         assertEq(found.length, 0);

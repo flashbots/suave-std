@@ -16,6 +16,7 @@ library Suave {
         bytes32 random;
         Withdrawal[] withdrawals;
         bytes extra;
+        bytes32 beaconRoot;
         bool fillPending;
     }
 
@@ -68,6 +69,8 @@ library Suave {
 
     address public constant CONFIDENTIAL_STORE = 0x0000000000000000000000000000000042020000;
 
+    address public constant CONTEXT_GET = 0x0000000000000000000000000000000053300003;
+
     address public constant DO_HTTPREQUEST = 0x0000000000000000000000000000000043200002;
 
     address public constant ETHCALL = 0x0000000000000000000000000000000042100003;
@@ -82,6 +85,8 @@ library Suave {
 
     address public constant NEW_DATA_RECORD = 0x0000000000000000000000000000000042030000;
 
+    address public constant PRIVATE_KEY_GEN = 0x0000000000000000000000000000000053200003;
+
     address public constant SIGN_ETH_TRANSACTION = 0x0000000000000000000000000000000040100001;
 
     address public constant SIGN_MESSAGE = 0x0000000000000000000000000000000040100003;
@@ -95,8 +100,8 @@ library Suave {
     address public constant SUBMIT_ETH_BLOCK_TO_RELAY = 0x0000000000000000000000000000000042100002;
 
     // Returns whether execution is off- or on-chain
-    function isConfidential() internal view returns (bool b) {
-        (bool success, bytes memory isConfidentialBytes) = IS_CONFIDENTIAL_ADDR.staticcall("");
+    function isConfidential() internal returns (bool b) {
+        (bool success, bytes memory isConfidentialBytes) = IS_CONFIDENTIAL_ADDR.call("");
         if (!success) {
             revert PeekerReverted(IS_CONFIDENTIAL_ADDR, isConfidentialBytes);
         }
@@ -110,10 +115,9 @@ library Suave {
 
     function buildEthBlock(BuildBlockArgs memory blockArgs, DataId dataId, string memory namespace)
         internal
-        view
         returns (bytes memory, bytes memory)
     {
-        (bool success, bytes memory data) = BUILD_ETH_BLOCK.staticcall(abi.encode(blockArgs, dataId, namespace));
+        (bool success, bytes memory data) = BUILD_ETH_BLOCK.call(abi.encode(blockArgs, dataId, namespace));
         if (!success) {
             revert PeekerReverted(BUILD_ETH_BLOCK, data);
         }
@@ -121,8 +125,8 @@ library Suave {
         return abi.decode(data, (bytes, bytes));
     }
 
-    function confidentialInputs() internal view returns (bytes memory) {
-        (bool success, bytes memory data) = CONFIDENTIAL_INPUTS.staticcall(abi.encode());
+    function confidentialInputs() internal returns (bytes memory) {
+        (bool success, bytes memory data) = CONFIDENTIAL_INPUTS.call(abi.encode());
         if (!success) {
             revert PeekerReverted(CONFIDENTIAL_INPUTS, data);
         }
@@ -130,8 +134,8 @@ library Suave {
         return data;
     }
 
-    function confidentialRetrieve(DataId dataId, string memory key) internal view returns (bytes memory) {
-        (bool success, bytes memory data) = CONFIDENTIAL_RETRIEVE.staticcall(abi.encode(dataId, key));
+    function confidentialRetrieve(DataId dataId, string memory key) internal returns (bytes memory) {
+        (bool success, bytes memory data) = CONFIDENTIAL_RETRIEVE.call(abi.encode(dataId, key));
         if (!success) {
             revert PeekerReverted(CONFIDENTIAL_RETRIEVE, data);
         }
@@ -139,15 +143,24 @@ library Suave {
         return data;
     }
 
-    function confidentialStore(DataId dataId, string memory key, bytes memory value) internal view {
-        (bool success, bytes memory data) = CONFIDENTIAL_STORE.staticcall(abi.encode(dataId, key, value));
+    function confidentialStore(DataId dataId, string memory key, bytes memory value) internal {
+        (bool success, bytes memory data) = CONFIDENTIAL_STORE.call(abi.encode(dataId, key, value));
         if (!success) {
             revert PeekerReverted(CONFIDENTIAL_STORE, data);
         }
     }
 
-    function doHTTPRequest(HttpRequest memory request) internal view returns (bytes memory) {
-        (bool success, bytes memory data) = DO_HTTPREQUEST.staticcall(abi.encode(request));
+    function contextGet(string memory key) internal returns (bytes memory) {
+        (bool success, bytes memory data) = CONTEXT_GET.call(abi.encode(key));
+        if (!success) {
+            revert PeekerReverted(CONTEXT_GET, data);
+        }
+
+        return abi.decode(data, (bytes));
+    }
+
+    function doHTTPRequest(HttpRequest memory request) internal returns (bytes memory) {
+        (bool success, bytes memory data) = DO_HTTPREQUEST.call(abi.encode(request));
         if (!success) {
             revert PeekerReverted(DO_HTTPREQUEST, data);
         }
@@ -155,8 +168,8 @@ library Suave {
         return abi.decode(data, (bytes));
     }
 
-    function ethcall(address contractAddr, bytes memory input1) internal view returns (bytes memory) {
-        (bool success, bytes memory data) = ETHCALL.staticcall(abi.encode(contractAddr, input1));
+    function ethcall(address contractAddr, bytes memory input1) internal returns (bytes memory) {
+        (bool success, bytes memory data) = ETHCALL.call(abi.encode(contractAddr, input1));
         if (!success) {
             revert PeekerReverted(ETHCALL, data);
         }
@@ -164,9 +177,9 @@ library Suave {
         return abi.decode(data, (bytes));
     }
 
-    function extractHint(bytes memory bundleData) internal view returns (bytes memory) {
+    function extractHint(bytes memory bundleData) internal returns (bytes memory) {
         require(isConfidential());
-        (bool success, bytes memory data) = EXTRACT_HINT.staticcall(abi.encode(bundleData));
+        (bool success, bytes memory data) = EXTRACT_HINT.call(abi.encode(bundleData));
         if (!success) {
             revert PeekerReverted(EXTRACT_HINT, data);
         }
@@ -174,8 +187,8 @@ library Suave {
         return data;
     }
 
-    function fetchDataRecords(uint64 cond, string memory namespace) internal view returns (DataRecord[] memory) {
-        (bool success, bytes memory data) = FETCH_DATA_RECORDS.staticcall(abi.encode(cond, namespace));
+    function fetchDataRecords(uint64 cond, string memory namespace) internal returns (DataRecord[] memory) {
+        (bool success, bytes memory data) = FETCH_DATA_RECORDS.call(abi.encode(cond, namespace));
         if (!success) {
             revert PeekerReverted(FETCH_DATA_RECORDS, data);
         }
@@ -183,9 +196,9 @@ library Suave {
         return abi.decode(data, (DataRecord[]));
     }
 
-    function fillMevShareBundle(DataId dataId) internal view returns (bytes memory) {
+    function fillMevShareBundle(DataId dataId) internal returns (bytes memory) {
         require(isConfidential());
-        (bool success, bytes memory data) = FILL_MEV_SHARE_BUNDLE.staticcall(abi.encode(dataId));
+        (bool success, bytes memory data) = FILL_MEV_SHARE_BUNDLE.call(abi.encode(dataId));
         if (!success) {
             revert PeekerReverted(FILL_MEV_SHARE_BUNDLE, data);
         }
@@ -193,8 +206,8 @@ library Suave {
         return data;
     }
 
-    function newBuilder() internal view returns (string memory) {
-        (bool success, bytes memory data) = NEW_BUILDER.staticcall(abi.encode());
+    function newBuilder() internal returns (string memory) {
+        (bool success, bytes memory data) = NEW_BUILDER.call(abi.encode());
         if (!success) {
             revert PeekerReverted(NEW_BUILDER, data);
         }
@@ -207,9 +220,9 @@ library Suave {
         address[] memory allowedPeekers,
         address[] memory allowedStores,
         string memory dataType
-    ) internal view returns (DataRecord memory) {
+    ) internal returns (DataRecord memory) {
         (bool success, bytes memory data) =
-            NEW_DATA_RECORD.staticcall(abi.encode(decryptionCondition, allowedPeekers, allowedStores, dataType));
+            NEW_DATA_RECORD.call(abi.encode(decryptionCondition, allowedPeekers, allowedStores, dataType));
         if (!success) {
             revert PeekerReverted(NEW_DATA_RECORD, data);
         }
@@ -217,12 +230,20 @@ library Suave {
         return abi.decode(data, (DataRecord));
     }
 
+    function privateKeyGen() internal returns (string memory) {
+        (bool success, bytes memory data) = PRIVATE_KEY_GEN.call(abi.encode());
+        if (!success) {
+            revert PeekerReverted(PRIVATE_KEY_GEN, data);
+        }
+
+        return abi.decode(data, (string));
+    }
+
     function signEthTransaction(bytes memory txn, string memory chainId, string memory signingKey)
         internal
-        view
         returns (bytes memory)
     {
-        (bool success, bytes memory data) = SIGN_ETH_TRANSACTION.staticcall(abi.encode(txn, chainId, signingKey));
+        (bool success, bytes memory data) = SIGN_ETH_TRANSACTION.call(abi.encode(txn, chainId, signingKey));
         if (!success) {
             revert PeekerReverted(SIGN_ETH_TRANSACTION, data);
         }
@@ -230,9 +251,9 @@ library Suave {
         return abi.decode(data, (bytes));
     }
 
-    function signMessage(bytes memory digest, string memory signingKey) internal view returns (bytes memory) {
+    function signMessage(bytes memory digest, string memory signingKey) internal returns (bytes memory) {
         require(isConfidential());
-        (bool success, bytes memory data) = SIGN_MESSAGE.staticcall(abi.encode(digest, signingKey));
+        (bool success, bytes memory data) = SIGN_MESSAGE.call(abi.encode(digest, signingKey));
         if (!success) {
             revert PeekerReverted(SIGN_MESSAGE, data);
         }
@@ -240,8 +261,8 @@ library Suave {
         return abi.decode(data, (bytes));
     }
 
-    function simulateBundle(bytes memory bundleData) internal view returns (uint64) {
-        (bool success, bytes memory data) = SIMULATE_BUNDLE.staticcall(abi.encode(bundleData));
+    function simulateBundle(bytes memory bundleData) internal returns (uint64) {
+        (bool success, bytes memory data) = SIMULATE_BUNDLE.call(abi.encode(bundleData));
         if (!success) {
             revert PeekerReverted(SIMULATE_BUNDLE, data);
         }
@@ -251,10 +272,9 @@ library Suave {
 
     function simulateTransaction(string memory sessionid, bytes memory txn)
         internal
-        view
         returns (SimulateTransactionResult memory)
     {
-        (bool success, bytes memory data) = SIMULATE_TRANSACTION.staticcall(abi.encode(sessionid, txn));
+        (bool success, bytes memory data) = SIMULATE_TRANSACTION.call(abi.encode(sessionid, txn));
         if (!success) {
             revert PeekerReverted(SIMULATE_TRANSACTION, data);
         }
@@ -264,11 +284,10 @@ library Suave {
 
     function submitBundleJsonRPC(string memory url, string memory method, bytes memory params)
         internal
-        view
         returns (bytes memory)
     {
         require(isConfidential());
-        (bool success, bytes memory data) = SUBMIT_BUNDLE_JSON_RPC.staticcall(abi.encode(url, method, params));
+        (bool success, bytes memory data) = SUBMIT_BUNDLE_JSON_RPC.call(abi.encode(url, method, params));
         if (!success) {
             revert PeekerReverted(SUBMIT_BUNDLE_JSON_RPC, data);
         }
@@ -276,13 +295,9 @@ library Suave {
         return data;
     }
 
-    function submitEthBlockToRelay(string memory relayUrl, bytes memory builderBid)
-        internal
-        view
-        returns (bytes memory)
-    {
+    function submitEthBlockToRelay(string memory relayUrl, bytes memory builderBid) internal returns (bytes memory) {
         require(isConfidential());
-        (bool success, bytes memory data) = SUBMIT_ETH_BLOCK_TO_RELAY.staticcall(abi.encode(relayUrl, builderBid));
+        (bool success, bytes memory data) = SUBMIT_ETH_BLOCK_TO_RELAY.call(abi.encode(relayUrl, builderBid));
         if (!success) {
             revert PeekerReverted(SUBMIT_ETH_BLOCK_TO_RELAY, data);
         }
