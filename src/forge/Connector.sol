@@ -5,14 +5,20 @@ import "forge-std/Test.sol";
 
 contract Connector is Test {
     function forgeIt(bytes memory addr, bytes memory data) internal returns (bytes memory) {
+        string memory root = vm.projectRoot();
+        string memory foundryToml = string.concat(root, "/", "foundry.toml");
+
         string memory addrHex = iToHex(addr);
         string memory dataHex = iToHex(data);
 
-        string[] memory inputs = new string[](4);
+        string[] memory inputs = new string[](7);
         inputs[0] = "suave-geth";
         inputs[1] = "forge";
-        inputs[2] = addrHex;
-        inputs[3] = dataHex;
+        inputs[2] = "--local";
+        inputs[3] = "--config";
+        inputs[4] = foundryToml;
+        inputs[5] = addrHex;
+        inputs[6] = dataHex;
 
         bytes memory res = vm.ffi(inputs);
         return res;

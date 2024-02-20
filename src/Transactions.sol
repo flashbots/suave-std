@@ -303,7 +303,7 @@ library Transactions {
     {
         bytes memory rlp = Transactions.encodeRLP(request);
         bytes memory hash = abi.encodePacked(keccak256(rlp));
-        bytes memory signature = Suave.signMessage(hash, signingKey);
+        bytes memory signature = Suave.signMessage(hash, Suave.CryptoSignature.SECP256, signingKey);
         (uint8 v, bytes32 r, bytes32 s) = decodeSignature(signature);
 
         response.to = request.to;
@@ -328,7 +328,7 @@ library Transactions {
     {
         bytes memory rlp = Transactions.encodeRLP(request);
         bytes memory hash = abi.encodePacked(keccak256(rlp));
-        bytes memory signature = Suave.signMessage(hash, signingKey);
+        bytes memory signature = Suave.signMessage(hash, Suave.CryptoSignature.SECP256, signingKey);
 
         // TODO: check overflow
         uint64 chainIdMul = uint64(request.chainId) * 2;
