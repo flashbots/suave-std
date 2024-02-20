@@ -21,17 +21,12 @@ contract SuaveEnabled is Test {
     ContextConnector constant ctx = ContextConnector(Suave.CONTEXT_GET);
 
     function setUp() public {
-        string[] memory inputs = new string[](3);
+        string[] memory inputs = new string[](2);
         inputs[0] = "suave-geth";
-        inputs[1] = "forge";
-        inputs[2] = "status";
+        inputs[1] = "version";
 
         try vm.ffi(inputs) returns (bytes memory response) {
-            // the status call of the `suave-geth forge` command fails with the 'not-ok' prefix
-            // which is '6e6f742d6f6b' in hex
-            if (isPrefix(hex"6e6f742d6f6b", response)) {
-                revert("Local Suave node not detected running");
-            }
+            // TODO: validate versions
         } catch (bytes memory reason) {
             revert(detectErrorMessage(reason));
         }
@@ -49,7 +44,7 @@ contract SuaveEnabled is Test {
 
     function detectErrorMessage(bytes memory reason) internal pure returns (string memory) {
         // Errors from cheatcodes are reported as 'CheatcodeError(string)' events
-        // 'eeaa9e6f' is the signature of the event
+        // 'eeaa9e6f' is the signature of the event. If the error is not a CheatcodeError, return the reason as is
         if (!isPrefix(hex"eeaa9e6f", reason)) {
             return string(reason);
         }
