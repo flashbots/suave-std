@@ -16,7 +16,6 @@ interface ConfidentialStoreI {
 }
 
 contract SuaveEnabled is Test {
-    // ConfidentialInputsWrapperI constant confInputsWrapper = ConfidentialInputsWrapperI(Suave.CONFIDENTIAL_INPUTS);
     ConfidentialStoreI constant confStoreWrapper = ConfidentialStoreI(Registry.confidentialStoreAddr);
     ContextConnector constant ctx = ContextConnector(Suave.CONTEXT_GET);
 
