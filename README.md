@@ -60,6 +60,28 @@ contract Example {
 }
 ```
 
+### Context.sol
+
+Helper library to interact with the Suave context in the MEVM.
+
+Available functions:
+
+- `confidentialInputs()`: Returns the confidential inputs of the offchain request.
+- `kettleAddress()`: Address of the kettle that is executing the offchain request.
+
+#### Example usage
+
+```solidity
+import "suave-std/Context.sol";
+
+contract Example {
+    function example() {
+        bytes memory inputs = Context.confidentialInputs();
+        address kettle = Context.kettleAddress();
+    }
+}
+```
+
 ### protocols/MevShare.sol
 
 Helper library to send bundle requests with the Mev-Share protocol.

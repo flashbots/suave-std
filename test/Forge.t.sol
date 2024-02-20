@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "src/Test.sol";
 import "src/suavelib/Suave.sol";
+import "src/Context.sol";
 
 contract TestForge is Test, SuaveEnabled {
     address[] public addressList = [0xC8df3686b4Afb2BB53e60EAe97EF043FE03Fb829];
@@ -36,15 +37,34 @@ contract TestForge is Test, SuaveEnabled {
         assertEq(keccak256(found), keccak256(value));
     }
 
-    function testForgeConfidentialInputs() public {
-        // ensure that the confidential inputs are empty
-        bytes memory found = Suave.confidentialInputs();
-        assertEq(found.length, 0);
+    function testForgeContextConfidentialInputs() public {
+        bytes memory found1 = Context.confidentialInputs();
+        assertEq(found1.length, 0);
 
         bytes memory input = hex"abcd";
-        setConfidentialInputs(input);
+        ctx.setConfidentialInputs(input);
 
-        bytes memory found2 = Suave.confidentialInputs();
+        bytes memory found2 = Context.confidentialInputs();
         assertEq0(input, found2);
+
+        ctx.resetConfidentialInputs();
+
+        bytes memory found3 = Context.confidentialInputs();
+        assertEq(found3.length, 0);
+    }
+
+    function testForgeContextKettleAddress() public {
+        address found1 = Context.kettleAddress();
+        assertEq(found1, address(0));
+
+        ctx.setKettleAddress(address(this));
+
+        address found2 = Context.kettleAddress();
+        assertEq(found2, address(this));
+
+        ctx.resetKettleAddress();
+
+        address found3 = Context.kettleAddress();
+        assertEq(found3, address(0));
     }
 }

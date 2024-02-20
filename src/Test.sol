@@ -4,6 +4,7 @@ pragma solidity ^0.8.8;
 import "./forge/Registry.sol";
 import "./suavelib/Suave.sol";
 import "forge-std/Test.sol";
+import "./forge/ContextConnector.sol";
 
 interface ConfidentialInputsWrapperI {
     function setConfidentialInputs(bytes memory) external;
@@ -15,8 +16,8 @@ interface ConfidentialStoreI {
 }
 
 contract SuaveEnabled is Test {
-    ConfidentialInputsWrapperI constant confInputsWrapper = ConfidentialInputsWrapperI(Suave.CONFIDENTIAL_INPUTS);
     ConfidentialStoreI constant confStoreWrapper = ConfidentialStoreI(Registry.confidentialStoreAddr);
+    ContextConnector constant ctx = ContextConnector(Suave.CONTEXT_GET);
 
     function setUp() public {
         string[] memory inputs = new string[](2);
@@ -33,11 +34,6 @@ contract SuaveEnabled is Test {
 
         // reset the confidential store before each test
         resetConfidentialStore();
-        confInputsWrapper.resetConfidentialInputs();
-    }
-
-    function setConfidentialInputs(bytes memory data) internal {
-        confInputsWrapper.setConfidentialInputs(data);
     }
 
     function detectErrorMessage(bytes memory reason) internal pure returns (string memory) {
