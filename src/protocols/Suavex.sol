@@ -10,11 +10,11 @@ library Suavex {
     using JsonWriter for JsonWriter.Json;
     using LibString for *;
 
-    function buildEthBlock(string memory url, Suave.BuildBlockArgs memory args, Bundle.BundleObj[] memory bundles)
-        public
+    function buildEthBlockFromBundles(string memory url, Suave.BuildBlockArgs memory args, Bundle.BundleObj[] memory bundles)
+        internal
         returns (bytes memory)
     {
-        string memory params = encodeBuildEthBlock(args, bundles);
+        string memory params = encodeBuildEthBlockFromBundles(args, bundles);
         bytes memory body = encodeRpcRequest("suavex_buildEthBlockFromBundles", params, 1);
         Suave.HttpRequest memory request;
         request.url = url;
@@ -26,7 +26,7 @@ library Suavex {
         return Suave.doHTTPRequest(request);
     }
 
-    function encodeBuildEthBlock(Suave.BuildBlockArgs memory args, Bundle.BundleObj[] memory bundles)
+    function encodeBuildEthBlockFromBundles(Suave.BuildBlockArgs memory args, Bundle.BundleObj[] memory bundles)
         internal
         pure
         returns (string memory)
@@ -81,6 +81,28 @@ library Suavex {
             writer = writer.writeEndObject();
         }
         writer = writer.writeEndArray();
+        writer = writer.writeEndObject();
+        return writer.value;
+    }
+
+    function call(string memory url, address contractAddr, bytes memory input) internal returns (bytes memory) {
+        string memory params = encodeCall(contractAddr, input);
+        bytes memory body = encodeRpcRequest("suavex_call", params, 1);
+        Suave.HttpRequest memory request;
+        request.url = url;
+        request.method = "POST";
+        request.body = body;
+        request.headers = new string[](1);
+        request.headers[0] = "Content-Type: application/json";
+        request.withFlashbotsSignature = true;
+        return Suave.doHTTPRequest(request);
+    }
+
+    function encodeCall(address contractAddr, bytes memory input) internal pure returns (string memory) {
+        JsonWriter.Json memory writer;
+        writer = writer.writeStartObject();
+        writer = writer.writeStringProperty("contractAddr", contractAddr.toHexString());
+        writer = writer.writeBytesProperty("input", input);
         writer = writer.writeEndObject();
         return writer.value;
     }

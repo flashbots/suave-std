@@ -10,7 +10,7 @@ import "solady/src/utils/JSONParserLib.sol";
 contract SuavexTest is Test {
     using JSONParserLib for string;
 
-    function testBuildEthBlockEncode() public {
+    function testEncodeBuildEthBlockFromBundles() public {
         Bundle.BundleObj memory bundle;
         bundle.blockNumber = 1;
         bundle.minTimestamp = 2;
@@ -43,7 +43,14 @@ contract SuavexTest is Test {
 
         Bundle.BundleObj[] memory bundles = new Bundle.BundleObj[](1);
         bundles[0] = bundle;
-        string memory result = Suavex.encodeBuildEthBlock(args, bundles);
+        string memory result = Suavex.encodeBuildEthBlockFromBundles(args, bundles);
         assertEq(result, '{"args": {"slot": 1,"proposerPubkey": "EjQ=","parent": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","timestamp": 1,"feeRecipient": "0x0000000000000000000000000000000000000000","gasLimit": 1,"random": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","withdrawals": [{"index": "0x01","validator": "0x01","address": "0x0000000000000000000000000000000000000000","amount": "0x012074f44a60"}],"extra": "EjQ=","beaconRoot": "zMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw=","fillPending": false},"bundles": [{"blockNumber": "0x01","minTimestamp": "0x02","maxTimestamp": "0x03","txs": ["0x1234"]}]}');
+    }
+
+    function testEncodeCall() public {
+        address contractAddr = address(0);
+        bytes memory input = abi.encodeWithSignature("someMethod(uint256,string,address)", 1, "hello", address(1));
+        string memory result = Suavex.encodeCall(contractAddr, input);
+        assertEq(result, '{"contractAddr": "0x0000000000000000000000000000000000000000","input": "NS8NrQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFaGVsbG8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC="}');
     }
 }
