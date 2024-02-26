@@ -21,6 +21,9 @@ contract ChatGPTTest is Test, SuaveEnabled {
     function getChatGPT() public returns (ChatGPT chatgpt) {
         // NOTE: tried to do it with envOr but it did not worked
         try vm.envString("CHATGPT_API_KEY") returns (string memory apiKey) {
+            if (bytes(apiKey).length == 0) {
+                vm.skip(true);
+            }
             chatgpt = new ChatGPT(apiKey);
         } catch {
             vm.skip(true);
