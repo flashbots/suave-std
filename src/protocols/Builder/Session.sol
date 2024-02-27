@@ -7,6 +7,7 @@ import "../../Transactions.sol";
 import "solady/src/utils/LibString.sol";
 import {Types} from "./Types.sol";
 import "solady/src/utils/JSONParserLib.sol";
+import "../../utils/HexStrings.sol";
 
 contract Session is Test {
     using JSONParserLib for *;
@@ -46,8 +47,8 @@ contract Session is Test {
         console.log("-- bid output --");
         console.log(output.value());
 
-        // retrieve the root
-        console.log(output.at('"root"').value());
+        // retrieve the root to sign
+        bytes memory root = HexStrings.fromHexString(HexStrings.stripQuotesAndPrefix(output.at('"root"').value()));
     }
 
     function callImpl(string memory method, bytes memory args) internal returns (JSONParserLib.Item memory) {
