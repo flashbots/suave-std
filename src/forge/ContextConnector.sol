@@ -29,7 +29,13 @@ contract ContextConnector {
         if (keyHash == keccak256(abi.encodePacked("confidentialInputs"))) {
             msgContent = confidentialInputs;
         } else if (keyHash == keccak256(abi.encodePacked("kettleAddress"))) {
-            msgContent = abi.encode(kettleAddress);
+            // pad the address to the rigth to 32 bytes
+            bytes20 addr = bytes20(kettleAddress);
+            bytes memory paddedAddress = new bytes(32);
+            for (uint256 i = 0; i < 20; i++) {
+                paddedAddress[i] = addr[i];
+            }
+            msgContent = paddedAddress;
         } else {
             revert("Invalid context key");
         }
