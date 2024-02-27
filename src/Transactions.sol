@@ -21,7 +21,7 @@ library Transactions {
         uint256 chainId;
         bytes32 r;
         bytes32 s;
-        uint64 v;
+        uint256 v;
     }
 
     struct EIP155Request {
@@ -36,28 +36,28 @@ library Transactions {
 
     struct EIP1559 {
         address to;
-        uint64 gas;
-        uint64 maxFeePerGas;
-        uint64 maxPriorityFeePerGas;
-        uint64 value;
-        uint64 nonce;
+        uint256 gas;
+        uint256 maxFeePerGas;
+        uint256 maxPriorityFeePerGas;
+        uint256 value;
+        uint256 nonce;
         bytes data;
-        uint64 chainId;
+        uint256 chainId;
         bytes accessList;
         bytes32 r;
         bytes32 s;
-        uint64 v;
+        uint256 v;
     }
 
     struct EIP1559Request {
         address to;
-        uint64 gas;
-        uint64 maxFeePerGas;
-        uint64 maxPriorityFeePerGas;
-        uint64 value;
-        uint64 nonce;
+        uint256 gas;
+        uint256 maxFeePerGas;
+        uint256 maxPriorityFeePerGas;
+        uint256 value;
+        uint256 nonce;
         bytes data;
-        uint64 chainId;
+        uint256 chainId;
         bytes accessList;
     }
 
@@ -75,7 +75,7 @@ library Transactions {
         }
         items[4] = RLPWriter.writeUint(txStruct.value);
         items[5] = RLPWriter.writeBytes(txStruct.data);
-        items[6] = RLPWriter.writeUint(uint256(txStruct.v));
+        items[6] = RLPWriter.writeUint(txStruct.v);
         items[7] = RLPWriter.writeBytes(abi.encodePacked(txStruct.r));
         items[8] = RLPWriter.writeBytes(abi.encodePacked(txStruct.s));
 
@@ -127,7 +127,7 @@ library Transactions {
             items[8] = RLPWriter.writeBytes(txStruct.accessList);
         }
 
-        items[9] = RLPWriter.writeUint(uint256(txStruct.v));
+        items[9] = RLPWriter.writeUint(txStruct.v);
         items[10] = RLPWriter.writeBytes(abi.encodePacked(txStruct.r));
         items[11] = RLPWriter.writeBytes(abi.encodePacked(txStruct.s));
 
@@ -185,9 +185,9 @@ library Transactions {
         RLPReader.RLPItem[] memory ls = rlp.toRlpItem().toList();
         require(ls.length == 9, "invalid transaction");
 
-        txStruct.nonce = uint64(ls[0].toUint());
-        txStruct.gasPrice = uint64(ls[1].toUint());
-        txStruct.gas = uint64(ls[2].toUint());
+        txStruct.nonce = ls[0].toUint();
+        txStruct.gasPrice = ls[1].toUint();
+        txStruct.gas = ls[2].toUint();
 
         if (ls[3].toRlpBytes().length == 1) {
             txStruct.to = address(0);
@@ -195,9 +195,9 @@ library Transactions {
             txStruct.to = ls[3].toAddress();
         }
 
-        txStruct.value = uint64(ls[4].toUint());
+        txStruct.value = ls[4].toUint();
         txStruct.data = ls[5].toBytes();
-        txStruct.v = uint64(ls[6].toUint());
+        txStruct.v = ls[6].toUint();
         txStruct.r = bytesToBytes32(ls[7].toBytes());
         txStruct.s = bytesToBytes32(ls[8].toBytes());
 
