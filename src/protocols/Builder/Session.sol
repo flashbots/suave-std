@@ -34,6 +34,22 @@ contract Session is Test {
         return result;
     }
 
+    function buildBlock() public {
+        bytes memory input = abi.encodePacked(session);
+        callImpl("buildBlock", input);
+    }
+
+    function bid(string memory blsPubKey) public returns (JSONParserLib.Item memory) {
+        bytes memory input = abi.encodePacked(session, ',"0x', blsPubKey, '"');
+        JSONParserLib.Item memory output = callImpl("bid", input);
+
+        console.log("-- bid output --");
+        console.log(output.value());
+
+        // retrieve the root
+        console.log(output.at('"root"').value());
+    }
+
     function callImpl(string memory method, bytes memory args) internal returns (JSONParserLib.Item memory) {
         Suave.HttpRequest memory request;
         request.method = "POST";
