@@ -246,12 +246,13 @@ library Suave {
         return abi.decode(data, (string));
     }
 
-    function randomUint256() internal returns (uint256 value) {
+    function randomUint256() internal returns (uint256) {
         (bool success, bytes memory data) = RANDOM_UINT256.call(abi.encode());
         if (!success) {
             revert PeekerReverted(RANDOM_UINT256, data);
         }
-        value = abi.decode(data, (uint256));
+
+        return abi.decode(data, (uint256));
     }
 
     function signEthTransaction(bytes memory txn, string memory chainId, string memory signingKey)

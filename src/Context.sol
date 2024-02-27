@@ -9,7 +9,13 @@ library Context {
     }
 
     function kettleAddress() internal returns (address) {
-        bytes memory addr = Suave.contextGet("kettleAddress");
-        return abi.decode(addr, (address));
+        bytes memory _bytes = Suave.contextGet("kettleAddress");
+
+        address addr;
+        assembly {
+            addr := mload(add(_bytes, 20))
+        }
+
+        return addr;
     }
 }
