@@ -10,10 +10,6 @@ library Logs {
         bytes data;
     }
 
-    struct Result {
-        Log[] logs;
-    }
-
     bytes constant MAGIC_SEQUENCE = hex"543543";
 
     function findStartIndex(bytes memory data) internal pure returns (uint256) {
@@ -53,9 +49,9 @@ library Logs {
             dataToDecode[i] = inputData[magicSequenceIndex + i];
         }
 
-        Result memory result = abi.decode(dataToDecode, (Result));
-        for (uint256 i = 0; i < result.logs.length; i++) {
-            emitLog(result.logs[i]);
+        (Log[] memory logs) = abi.decode(dataToDecode, (Log[]));
+        for (uint256 i = 0; i < logs.length; i++) {
+            emitLog(logs[i]);
         }
     }
 

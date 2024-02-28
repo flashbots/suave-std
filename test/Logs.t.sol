@@ -83,8 +83,7 @@ contract TestLogs is Test {
         emit EventTopic2(1, 1);
 
         Logs.Log[] memory logs = getEmittedLogs();
-        Logs.Result memory result = Logs.Result(logs);
-        bytes memory encodedResult = abi.encode(result);
+        bytes memory encodedResult = abi.encode(logs);
 
         // create some dummy prefix + MAGIC + encodedResult
         bytes memory inputData = abi.encodePacked(hex"00112233445566", Logs.MAGIC_SEQUENCE, encodedResult);
@@ -120,6 +119,15 @@ contract TestLogs is Test {
         for (uint256 i = 0; i < logs.length; i++) {
             assertEq(logs[i].addr, 0x0300000000000000000000000000000000000000);
         }
+
+        // validate that 'decodeLogs' works too
+        bytes memory inputData = abi.encodePacked(hex"00112233445566", Logs.MAGIC_SEQUENCE, encodedResultTestcase);
+
+        vm.recordLogs();
+        Logs.decodeLogs(inputData);
+
+        Logs.Log[] memory foundLogs = getEmittedLogs();
+        assertEq(foundLogs.length, logs.length);
     }
 
     // testFindStartIndex tests that we can detect when the logs suffix starts
