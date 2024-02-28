@@ -13,6 +13,36 @@ contract TestRandom is Test, SuaveEnabled {
         assert(random.length == 32);
     }
 
+    function testRandomUint8() public {
+        uint8 random = Suave.randomUint8();
+        console2.log("random uint8: %d", random);
+        assert(random > 0);
+    }
+
+    function testRandomUint16() public {
+        uint16 random = Suave.randomUint16();
+        console2.log("random uint16: %d", random);
+        assert(random > 0);
+    }
+
+    function testRandomUint32() public {
+        uint32 random = Suave.randomUint32();
+        console2.log("random uint32: %d", random);
+        assert(random > 0);
+    }
+
+    function testRandomUint64() public {
+        uint64 random = Suave.randomUint64();
+        console2.log("random uint64: %d", random);
+        assert(random > 0);
+    }
+
+    function testRandomUint128() public {
+        uint128 random = Suave.randomUint128();
+        console2.log("random uint128: %d", random);
+        assert(random > 0);
+    }
+
     function testRandomUint256() public {
         uint256 random = Suave.randomUint256();
         console2.log("random uint256: %d", random);
