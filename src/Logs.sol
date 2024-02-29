@@ -95,9 +95,4 @@ library Logs {
             }
         }
     }
-
-    modifier withOffchainLogs() {
-        decodeLogs(msg.data);
-        _;
-    }
 }

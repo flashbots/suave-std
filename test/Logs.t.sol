@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "forge-std/Vm.sol";
 import "src/Logs.sol";
+import "src/Suapp.sol";
 
 contract TestLogs is Test {
     // generated with suave-geth TestE2E_EmitLogs test
@@ -141,4 +142,25 @@ contract TestLogs is Test {
         index = Logs.findStartIndex(withMagic);
         assertEq(index, noMagic.length + Logs.MAGIC_SEQUENCE.length);
     }
+
+    // testExecResult_Modifier tests that the Suapp modifier works
+    function testExecResult_Modifier() public {
+        SuappExample suapp = new SuappExample();
+
+        // call suapp.testEmit with empty input + the magic sequence + logs
+        bytes memory callSig = abi.encodeWithSelector(SuappExample.testEmit.selector);
+        bytes memory inputData = abi.encodePacked(callSig, Logs.MAGIC_SEQUENCE, encodedResultTestcase);
+
+        // call the function
+        vm.recordLogs();
+        (bool success,) = address(suapp).call(inputData);
+        assertEq(success, true);
+
+        Logs.Log[] memory foundLogs = getEmittedLogs();
+        assertEq(foundLogs.length, 5);
+    }
+}
+
+contract SuappExample is Suapp {
+    function testEmit() public emitOffchainLogs {}
 }
