@@ -21,7 +21,12 @@ library Bundle {
         return Suave.doHTTPRequest(request);
     }
 
-    function simParams(BundleObj memory args) internal pure returns (bytes memory params) {
+    function simulateBundle(BundleObj memory bundle) internal returns (uint64 egp) {
+        bytes memory simParams = encodeSimParams(bundle);
+        egp = Suave.simulateBundle(simParams);
+    }
+
+    function encodeSimParams(BundleObj memory args) internal pure returns (bytes memory params) {
         params = abi.encodePacked(
             '{"blockNumber": "',
             LibString.toHexString(args.blockNumber),
