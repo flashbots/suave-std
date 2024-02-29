@@ -2,10 +2,13 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "../../src/protocols/Bundle.sol";
-import "../../src/suavelib/Suave.sol";
+import "src/protocols/Bundle.sol";
+import "src/suavelib/Suave.sol";
+import "solady/src/utils/LibString.sol";
 
 contract EthSendBundle is Test {
+    using LibString for *;
+
     function testEthSendBundleEncode() public {
         Bundle.BundleObj memory bundle;
         bundle.blockNumber = 1;
@@ -45,17 +48,31 @@ contract EthSendBundle is Test {
         bundle.txns[0] = hex"1234";
         bundle.refundPercent = 50;
 
-        bytes memory params = Bundle.simParams(bundle);
+        bytes memory params = Bundle.encodeSimParams(bundle);
         assertEq(string(params), '{"blockNumber": "0x01", "refundPercent": 50, "txs": ["0x1234"]}');
 
         // encode with 'revertingHashes'
         bundle.revertingHashes = new bytes32[](1);
         bundle.revertingHashes[0] = keccak256("hashem");
 
-        bytes memory params2 = Bundle.simParams(bundle);
+        bytes memory params2 = Bundle.encodeSimParams(bundle);
         assertEq(
             string(params2),
             '{"blockNumber": "0x01", "refundPercent": 50, "revertingHashes": ["0x0a80df9c7574c9524999e774c05a27acf214618b45f4948b88ad1083e13a871a"], "txs": ["0x1234"]}'
         );
+    }
+
+    function testBundleDecode() public {
+        string memory json = "{" '"blockNumber": "0xdead",' '"minTimestamp": 1625072400,'
+            '"maxTimestamp": 1625076000,' '"txs": [' '"0xdeadbeef",' '"0xc0ffee",' '"0x00aabb"' "]" "}";
+
+        Bundle.BundleObj memory bundle = Bundle.decodeBundle(json);
+        assertEq(bundle.blockNumber, 0xdead);
+        assertEq(bundle.minTimestamp, 1625072400);
+        assertEq(bundle.maxTimestamp, 1625076000);
+        assertEq(bundle.txns.length, 3);
+        assertEq(bundle.txns[0].toHexString(), "0xdeadbeef");
+        assertEq(bundle.txns[1].toHexString(), "0xc0ffee");
+        assertEq(bundle.txns[2].toHexString(), "0x00aabb");
     }
 }
