@@ -96,7 +96,7 @@ library Logs {
         }
     }
 
-    modifier logs() {
+    modifier withOffchainLogs() {
         decodeLogs(msg.data);
         _;
     }
