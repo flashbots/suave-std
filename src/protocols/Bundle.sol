@@ -11,12 +11,44 @@ library Bundle {
         uint64 minTimestamp;
         uint64 maxTimestamp;
         bytes[] txns;
+        bytes32[] revertingHashes;
+        uint256 refundPercent;
     }
 
     function sendBundle(string memory url, BundleObj memory bundle) internal returns (bytes memory) {
         Suave.HttpRequest memory request = encodeBundle(bundle);
         request.url = url;
         return Suave.doHTTPRequest(request);
+    }
+
+    function simParams(BundleObj memory args) internal pure returns (bytes memory params) {
+        params = abi.encodePacked(
+            '{"blockNumber": "',
+            LibString.toHexString(args.blockNumber),
+            '", "refundPercent": ',
+            LibString.toString(args.refundPercent)
+        );
+        if (args.revertingHashes.length > 0) {
+            params = abi.encodePacked(params, ', "revertingHashes": [');
+            for (uint256 i = 0; i < args.revertingHashes.length; i++) {
+                params = abi.encodePacked(params, '"', LibString.toHexString(uint256(args.revertingHashes[i])), '"');
+                if (i < args.revertingHashes.length - 1) {
+                    params = abi.encodePacked(params, ",");
+                } else {
+                    params = abi.encodePacked(params, "]");
+                }
+            }
+        }
+        params = abi.encodePacked(params, ', "txs": [');
+        for (uint256 i = 0; i < args.txns.length; i++) {
+            params = abi.encodePacked(params, '"', LibString.toHexString(args.txns[i]), '"');
+            if (i < args.txns.length - 1) {
+                params = abi.encodePacked(params, ",");
+            } else {
+                // end object with txs
+                params = abi.encodePacked(params, "]}");
+            }
+        }
     }
 
     function encodeBundle(BundleObj memory args) internal pure returns (Suave.HttpRequest memory) {
