@@ -55,14 +55,8 @@ jobs:
           git add ./src/suavelib/Suave.sol
           rm -rf suave-geth
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
       - name: Regenerate Forge registry
         run: |
-          forge build
           go run ./tools/forge-gen/main.go --apply
           git add ./src/forge/Registry.sol
 
