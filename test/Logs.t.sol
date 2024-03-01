@@ -114,7 +114,7 @@ contract TestLogs is Test {
         assertEq(logs[1].data.length, 0);
         for (uint256 i = 2; i < logs.length; i++) {
             if (logs[i].data.length == 0) {
-                revert("data is empty")
+                revert("data is empty");
             }
         }
 
