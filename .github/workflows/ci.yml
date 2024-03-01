@@ -19,6 +19,7 @@ jobs:
 
       - name: Run suave
         run: |
+          suave-geth version
           suave-geth --suave.dev --suave.eth.external-whitelist='*' &
 
       - name: Install Foundry
