@@ -26,4 +26,13 @@ library HexStrings {
         }
         return r;
     }
+
+    function stripQuotesAndPrefix(string memory s) internal pure returns (string memory) {
+        bytes memory strBytes = bytes(s);
+        bytes memory result = new bytes(strBytes.length - 4);
+        for (uint256 i = 3; i < strBytes.length - 1; i++) {
+            result[i - 3] = strBytes[i];
+        }
+        return string(result);
+    }
 }

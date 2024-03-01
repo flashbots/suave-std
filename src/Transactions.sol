@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import "./utils/RLPWriter.sol";
 import "./suavelib/Suave.sol";
 import "Solidity-RLP/RLPReader.sol";
+import "solady/src/utils/LibString.sol";
 
 library Transactions {
     using RLPReader for RLPReader.RLPItem;
@@ -357,5 +358,47 @@ library Transactions {
             s := mload(add(signature, 0x40))
             v := byte(0, mload(add(signature, 0x60)))
         }
+    }
+
+    function encodeJSON(EIP155 memory txn) internal pure returns (bytes memory) {
+        // encode transaction in json
+        bytes memory txnEncoded;
+
+        // dynamic fields
+        if (txn.data.length != 0) {
+            txnEncoded = abi.encodePacked(txnEncoded, '"input":"', LibString.toHexString(txn.data), '",');
+        } else {
+            txnEncoded = abi.encodePacked(txnEncoded, '"input":"0x",');
+        }
+        if (txn.to != address(0)) {
+            txnEncoded = abi.encodePacked(txnEncoded, '"to":"', LibString.toHexString(txn.to), '",');
+        } else {
+            txnEncoded = abi.encodePacked(txnEncoded, '"to":null,');
+        }
+
+        // fixed fields
+        txnEncoded = abi.encodePacked(
+            txnEncoded,
+            '"gas":"',
+            LibString.toMinimalHexString(txn.gas),
+            '","gasPrice":"',
+            LibString.toMinimalHexString(txn.gasPrice),
+            '","nonce":"',
+            LibString.toMinimalHexString(txn.nonce),
+            '","value":"',
+            LibString.toMinimalHexString(txn.value),
+            '","chainId":"',
+            LibString.toMinimalHexString(txn.chainId),
+            '","r":"',
+            LibString.toHexString(abi.encodePacked(txn.r)),
+            '","s":"',
+            LibString.toHexString(abi.encodePacked(txn.s)),
+            '",'
+        );
+
+        txnEncoded = abi.encodePacked(txnEncoded, '"v":"', LibString.toMinimalHexString(txn.v), '"');
+        txnEncoded = abi.encodePacked("{", txnEncoded, "}");
+
+        return txnEncoded;
     }
 }
