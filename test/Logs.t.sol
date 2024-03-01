@@ -113,7 +113,9 @@ contract TestLogs is Test {
         assertEq(logs[0].data.length, 0);
         assertEq(logs[1].data.length, 0);
         for (uint256 i = 2; i < logs.length; i++) {
-            assertNotEq(logs[i].data.length, 0);
+            if (logs[i].data.length == 0) {
+                revert("data is empty")
+            }
         }
 
         // all of them have the same address (0x030)
