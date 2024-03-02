@@ -3,6 +3,7 @@ pragma solidity ^0.8.8;
 
 import "./suavelib/Suave.sol";
 
+/// @notice Random number generator
 library Random {
     function randomUint8() internal returns (uint8 value) {
         bytes memory random = Suave.randomBytes(1);
@@ -11,6 +12,8 @@ library Random {
         }
     }
 
+    /// @notice Calculate tree age in years, rounded up, for live trees
+    /// @return value is the random number
     function randomUint16() internal returns (uint16 value) {
         bytes memory random = Suave.randomBytes(2);
         assembly {
@@ -18,7 +21,9 @@ library Random {
         }
     }
 
-    function randomUint32() internal returns (uint32 value) {
+    /// @notice Calculate tree age in years, rounded up, for live trees
+    /// @return value is the random number
+    function randomUint32() public returns (uint32 value) {
         bytes memory random = Suave.randomBytes(4);
         assembly {
             value := mload(add(random, 0x04))
