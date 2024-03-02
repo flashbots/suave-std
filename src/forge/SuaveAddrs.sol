@@ -21,7 +21,7 @@ library SuaveAddrs {
         addrList[10] = Suave.NEW_BUILDER;
         addrList[11] = Suave.NEW_DATA_RECORD;
         addrList[12] = Suave.PRIVATE_KEY_GEN;
-        addrList[13] = Suave.RANDOM_UINT256;
+        addrList[13] = Suave.RANDOM_BYTES;
         addrList[14] = Suave.SIGN_ETH_TRANSACTION;
         addrList[15] = Suave.SIGN_MESSAGE;
         addrList[16] = Suave.SIMULATE_BUNDLE;
