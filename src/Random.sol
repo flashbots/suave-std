@@ -3,8 +3,10 @@ pragma solidity ^0.8.8;
 
 import "./suavelib/Suave.sol";
 
-/// @notice Random number generator
+/// @notice Random is a library with utilities to generate random data.
 library Random {
+    /// @notice generate a random uint8 number.
+    /// @return value is the random number
     function randomUint8() internal returns (uint8 value) {
         bytes memory random = Suave.randomBytes(1);
         assembly {
@@ -12,7 +14,7 @@ library Random {
         }
     }
 
-    /// @notice Calculate tree age in years, rounded up, for live trees
+    /// @notice generate a random uint16 number.
     /// @return value is the random number
     function randomUint16() internal returns (uint16 value) {
         bytes memory random = Suave.randomBytes(2);
@@ -21,7 +23,7 @@ library Random {
         }
     }
 
-    /// @notice Calculate tree age in years, rounded up, for live trees
+    /// @notice generate a random uint32 number.
     /// @return value is the random number
     function randomUint32() public returns (uint32 value) {
         bytes memory random = Suave.randomBytes(4);
@@ -30,6 +32,8 @@ library Random {
         }
     }
 
+    /// @notice generate a random uint64 number.
+    /// @return value is the random number
     function randomUint64() internal returns (uint64 value) {
         bytes memory random = Suave.randomBytes(8);
         assembly {
@@ -37,6 +41,8 @@ library Random {
         }
     }
 
+    /// @notice generate a random uint128 number.
+    /// @return value is the random number
     function randomUint128() internal returns (uint128 value) {
         bytes memory random = Suave.randomBytes(16);
         assembly {
@@ -44,6 +50,8 @@ library Random {
         }
     }
 
+    /// @notice generate a random uint256 number.
+    /// @return value is the random number
     function randomUint256() internal returns (uint256 value) {
         bytes memory random = Suave.randomBytes(32);
         assembly {

@@ -1,103 +1,241 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"html/template"
+	"io/fs"
+	"log"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
+
+	"github.com/Kunde21/markdownfmt/v3"
+	"github.com/Kunde21/markdownfmt/v3/markdown"
+)
+
+var (
+	suaveStdPath string
+	outPath      string
 )
 
 func main() {
+	flag.StringVar(&suaveStdPath, "suave-std", "./suave-std", "path to the suave std")
+	flag.StringVar(&outPath, "out", "./suave-std-gen", "path to the output")
+	flag.Parse()
 
-	data, err := os.ReadFile("./out/Random.sol/Random.json")
+	// read all the artifacts
+	artifacts, err := readForgeArtifacts(filepath.Join(suaveStdPath, "out"))
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	// fmt.Println(string(data))
-
-	var artifact artifact
-	if err := json.Unmarshal(data, &artifact); err != nil {
-		panic(err)
+	// parse the artifacts
+	contractDefs := []*ContractDef{}
+	for _, artifact := range artifacts {
+		contractDef, err := parseArtifact(artifact)
+		if err != nil {
+			log.Fatal(err)
+		}
+		contractDefs = append(contractDefs, contractDef...)
 	}
 
-	artifact.Ast.Walk(func(node *astNode) {
-		if node.NodeType != functionDefinitionType {
-			return
+	/*
+		data, err := json.Marshal(contractDefs)
+		if err != nil {
+			panic(err)
 		}
-		if node.Documentation == nil {
-			return
+		fmt.Println(string(data))
+	*/
+
+	// apply the template and write the docs
+	for _, contract := range contractDefs {
+		if err := applyTemplate(contract); err != nil {
+			log.Fatal(err)
 		}
-
-		funcDef := functionDef{
-			Name:   node.Name,
-			Param:  make(map[string]string),
-			Return: make(map[string]string),
-		}
-
-		lines := strings.Split(node.Documentation.Text, "\n")
-		for _, line := range lines {
-			line = strings.Trim(line, " ")
-			var param string
-
-			if strings.HasPrefix(line, noticePrefix) {
-				line = strings.TrimPrefix(line, noticePrefix)
-				funcDef.Description = line
-
-			} else if strings.HasPrefix(line, paramPrefix) {
-				line = strings.TrimPrefix(line, paramPrefix)
-				param, line = getParamVal(line)
-				funcDef.Param[param] = line
-
-			} else if strings.HasPrefix(line, returnPrefix) {
-				line = strings.TrimPrefix(line, returnPrefix)
-				param, line = getParamVal(line)
-				funcDef.Return[param] = line
-			}
-		}
-
-		fmt.Println("-- funcdef --")
-		fmt.Println(funcDef)
-	})
+	}
 }
 
-func getParamVal(line string) (string, string) {
-	indx := strings.Index(line, " ")
-	return line[:indx], line[indx+1:]
+func applyTemplate(contract *ContractDef) error {
+	t, err := template.New("template").Parse(docsTemplate)
+	if err != nil {
+		return err
+	}
+	var outputRaw bytes.Buffer
+	if err = t.Execute(&outputRaw, contract); err != nil {
+		return err
+	}
+
+	output := outputRaw.String()
+	output = strings.Replace(output, "&#34;", "\"", -1)
+
+	// format output
+	outputB, err := markdownfmt.Process("", []byte(output), markdown.WithSoftWraps())
+	if err != nil {
+		return err
+	}
+	output = string(outputB)
+
+	// get the relative path with respect to src
+	relPath := strings.TrimPrefix(contract.Path, "src/")
+	dstPath := filepath.Join(outPath, relPath)
+	dstPath = strings.Replace(dstPath, ".sol", ".mdx", -1)
+
+	// create any intermediate dirs
+	dir := filepath.Dir(dstPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	if err := os.WriteFile(dstPath, []byte(output), 0755); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-type contractDef struct {
-	Path      string
-	Functions []functionDef
+var docsTemplate = `
+# {{.Name}}
+
+{{.Description}}
+
+## Functions
+
+{{range .Functions}}
+### [https://github.com/flashbots/suave-std/#L{{.Pos.FromLine}}]({{.Name}})
+
+{{.Description}}
+
+{{ if ne (len .Input) 0 -}}
+Input:
+{{range .Input}}
+- "{{.Name}}": {{.Description}}
+{{end}}
+{{end}}
+
+{{ if ne (len .Output) 0 -}}
+Output:
+{{range .Output}}
+- "{{.Name}}": {{.Description}}
+{{end}}
+{{end}}
+
+{{end}}
+
+{{ if ne (len .Structs) 0 -}}
+## Structs
+
+{{range .Structs}}
+### [https://github.com/flashbots/suave-std/#L{{.Pos.FromLine}}]({{.Name}})
+
+{{.Description}}
+
+{{range .Fields}}
+- "{{.Name}}": {{.Description}}
+{{- end}}
+{{end}}
+
+{{end}}
+`
+
+type ContractDef struct {
+	Name        string        `json:"name"`
+	Path        string        `json:"path"`
+	Kind        string        `json:"kind"`
+	Examples    string        `json:"examples"`
+	Description string        `json:"description"`
+	Structs     []StructRef   `json:"structs"`
+	Functions   []FunctionDef `json:"functions"`
+}
+
+type StructRef struct {
+	ID          uint64   `json:"id"`
+	Name        string   `json:"name"`
+	Pos         *Pos     `json:"pos"`
+	Description string   `json:"description"`
+	Fields      []*Field `json:"fields"`
+}
+
+type FunctionDef struct {
+	Name        string   `json:"name"`
+	Pos         *Pos     `json:"pos"`
+	Description string   `json:"description"`
+	Input       []*Field `json:"input,omitempty"`
+	Output      []*Field `json:"output,omitempty"`
+	IsModifier  bool     `json:"is_modifier,omitempty"`
+}
+
+type Field struct {
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	Type          string `json:"type,omitempty"`
+	TypeReference uint64 `json:"type-reference,omitempty"`
 }
 
 var (
-	noticePrefix = "@notice "
-	paramPrefix  = "@param "
-	returnPrefix = "@return "
+	functionDefinitionType = "FunctionDefinition"
+	contractDefinitionType = "ContractDefinition"
+	modifierDefinitionType = "ModifierDefinition"
 )
 
-type functionDef struct {
-	Name        string
-	Description string
-	Param       map[string]string
-	Return      map[string]string
-}
+func readForgeArtifacts(path string) ([]*artifact, error) {
+	artifacts := []*artifact{}
+	err := filepath.WalkDir(path, func(path string, d fs.DirEntry, _ error) error {
+		if d.IsDir() {
+			return nil
+		}
+		ext := filepath.Ext(d.Name())
+		if ext != ".json" {
+			return nil
+		}
 
-var functionDefinitionType = "FunctionDefinition"
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		var artifact artifact
+		if err := json.Unmarshal(content, &artifact); err != nil {
+			return err
+		}
+
+		// skip artifacts not in the 'src' repo
+		if !strings.HasPrefix(artifact.Ast.AbsolutePath, "src/") {
+			return nil
+		}
+
+		artifacts = append(artifacts, &artifact)
+		return nil
+	})
+
+	return artifacts, err
+}
 
 type artifact struct {
 	Ast *astNode `json:"ast"`
 }
 
 type astNode struct {
+	ID            uint64
 	AbsolutePath  string
+	Src           string
 	Name          string
 	NodeType      string
 	Nodes         []astNode
+	ContractKind  string
 	Documentation *struct {
 		Text string
 	}
+	Members               []*astNode
+	TypeName              *astNode
+	ReturnParameters      *astNode
+	Parameters            json.RawMessage
+	ReferencedDeclaration uint64
+}
+
+func (a *astNode) hasDocs() bool {
+	return a.Documentation != nil && a.Documentation.Text != ""
 }
 
 func (a *astNode) Walk(handle func(*astNode)) {
@@ -105,4 +243,310 @@ func (a *astNode) Walk(handle func(*astNode)) {
 	for _, node := range a.Nodes {
 		node.Walk(handle)
 	}
+}
+
+func (a *astNode) Filter(check func(*astNode) bool) []*astNode {
+	res := []*astNode{}
+	a.Walk(func(b *astNode) {
+		bb := new(astNode)
+		*bb = *b
+
+		if check(bb) {
+			res = append(res, bb)
+		}
+	})
+	return res
+}
+
+func parseArtifact(artifact *artifact) ([]*ContractDef, error) {
+	// first find the contracts that have docs attached
+	contractsWithDocs := artifact.Ast.Filter(func(node *astNode) bool {
+		return node.NodeType == contractDefinitionType && node.hasDocs()
+	})
+
+	sourceUnit, err := newSourceUnit(filepath.Join(suaveStdPath, artifact.Ast.AbsolutePath))
+	if err != nil {
+		return nil, err
+	}
+
+	contractDecls := []*ContractDef{}
+
+	// for each contract, find the functions with comments
+	for _, contract := range contractsWithDocs {
+		if contract.Name == "RLPWriter" {
+			continue
+		}
+
+		contractDecl := &ContractDef{
+			Path:    artifact.Ast.AbsolutePath, // FIX; now only one contract per source unit
+			Name:    contract.Name,
+			Kind:    contract.ContractKind,
+			Structs: []StructRef{},
+		}
+
+		/*
+			// check if there is any example in the /examples folder
+			examplePath := "examples/" + strings.TrimPrefix(artifact.Ast.AbsolutePath, "src/")
+			examplePath = strings.Replace(examplePath, ".sol", ".txt", -1)
+
+			if info, err := os.Stat(examplePath); err == nil && !info.IsDir() {
+				content, err := os.ReadFile(examplePath)
+				if err != nil {
+					return nil, err
+				}
+				contractDecl.Examples = string(content)
+			}
+		*/
+
+		// Decode structs
+		astStructs := contract.Filter(func(node *astNode) bool {
+			return node.NodeType == "StructDefinition" && node.hasDocs()
+		})
+		for _, s := range astStructs {
+			structNat, err := parseNatSpec(s.Documentation.Text)
+			if err != nil {
+				return nil, err
+			}
+
+			pos, err := sourceUnit.Decode(s.Src)
+			if err != nil {
+				return nil, err
+			}
+			structRef := StructRef{
+				ID:          s.ID,
+				Name:        s.Name,
+				Pos:         pos,
+				Description: structNat.Description,
+			}
+
+			{
+				// fill out the types
+				fields, err := fillSpecTypes(structNat.Param, s.Members)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse %s struct %s: %v", contract.Name, s.Name, err)
+				}
+				structRef.Fields = fields
+			}
+
+			contractDecl.Structs = append(contractDecl.Structs, structRef)
+		}
+
+		// Decode contract natspec
+		contractNatSpec, err := parseNatSpec(contract.Documentation.Text)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse natspec for contract '%s': %v", contract.Name, err)
+		}
+		contractDecl.Description = contractNatSpec.Description
+
+		astFuncs := contract.Filter(func(node *astNode) bool {
+			return (node.NodeType == functionDefinitionType || node.NodeType == modifierDefinitionType) && node.hasDocs()
+		})
+
+		for _, astFunc := range astFuncs {
+			natSpec, err := parseNatSpec(astFunc.Documentation.Text)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse function natspec: contract='%s', function='%s': %v", contract.Name, astFunc.Name, err)
+			}
+
+			pos, err := sourceUnit.Decode(astFunc.Src)
+			if err != nil {
+				return nil, err
+			}
+			funcDecl := FunctionDef{
+				Name:        astFunc.Name,
+				Description: natSpec.Description,
+				Pos:         pos,
+				IsModifier:  astFunc.NodeType == modifierDefinitionType,
+			}
+
+			// Inputs
+			{
+				var inputParams struct {
+					Parameters []*astNode
+				}
+				if err := json.Unmarshal(astFunc.Parameters, &inputParams); err != nil {
+					return nil, err
+				}
+				fields, err := fillSpecTypes(natSpec.Param, inputParams.Parameters)
+				if err != nil {
+					return nil, err
+				}
+				funcDecl.Input = fields
+			}
+
+			// Output only if not a modifier
+			if astFunc.NodeType == functionDefinitionType {
+				var astOutputs []*astNode
+				if err := json.Unmarshal(astFunc.ReturnParameters.Parameters, &astOutputs); err != nil {
+					return nil, err
+				}
+				fields, err := fillSpecTypes(natSpec.Return, astOutputs)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse %s function %s: %v", contract.Name, astFunc.Name, err)
+				}
+				funcDecl.Output = fields
+			}
+
+			contractDecl.Functions = append(contractDecl.Functions, funcDecl)
+		}
+		contractDecls = append(contractDecls, contractDecl)
+	}
+
+	return contractDecls, nil
+}
+
+func fillSpecTypes(natValues []natSpecValue, astValues []*astNode) ([]*Field, error) {
+	if len(natValues) != len(astValues) {
+		return nil, fmt.Errorf("incorrect size?")
+	}
+
+	fields := []*Field{}
+	for indx, val := range natValues {
+		astVal := astValues[indx]
+
+		// validate that they have the same name if there is any in the ast
+		if astVal.Name != "" {
+			if astVal.Name != val.Name {
+				return nil, fmt.Errorf("error 2")
+			}
+		}
+
+		field := &Field{
+			Name:        val.Name,
+			Description: val.Description,
+		}
+
+		if astVal.TypeName.NodeType == "ElementaryTypeName" {
+			// just append the type
+			field.Type = astVal.TypeName.Name
+		} else if astVal.TypeName.NodeType == "UserDefinedTypeName" {
+			// find the resource reference.... it is the same!
+			field.TypeReference = astVal.TypeName.ReferencedDeclaration
+		} else if astVal.TypeName.NodeType == "ArrayTypeName" {
+			// TODO
+		} else {
+			return nil, fmt.Errorf("not found %s", astVal.TypeName.NodeType)
+		}
+
+		fields = append(fields, field)
+	}
+
+	return fields, nil
+}
+
+type natSpec struct {
+	Description string
+	Param       []natSpecValue
+	Return      []natSpecValue
+}
+
+type natSpecValue struct {
+	Name, Description string
+}
+
+func parseNatSpec(txt string) (*natSpec, error) {
+	spec := &natSpec{
+		Param:  []natSpecValue{},
+		Return: []natSpecValue{},
+	}
+
+	lines := strings.Split(txt, "\n")
+	for _, line := range lines {
+		line = strings.Trim(line, " ")
+
+		if !strings.HasPrefix(line, "@") {
+			return nil, fmt.Errorf("no @ found at the beginning of natspec")
+		}
+
+		consumeNextWord := func() (string, bool) {
+			whitespaceIndx := strings.Index(line, " ")
+			if whitespaceIndx == -1 {
+				return "", false
+			}
+
+			word := line[:whitespaceIndx]
+			line = line[whitespaceIndx+1:]
+
+			return word, true
+		}
+
+		natspecPrefix, ok := consumeNextWord()
+		if !ok {
+			return nil, fmt.Errorf("bad 1")
+		}
+
+		if natspecPrefix == "@notice" {
+			spec.Description = line
+		} else if natspecPrefix == "@param" || natspecPrefix == "@return" {
+			valName, ok := consumeNextWord()
+			if !ok {
+				return nil, fmt.Errorf("bad 2")
+			}
+
+			val := natSpecValue{
+				Name:        valName,
+				Description: line,
+			}
+			if natspecPrefix == "@param" {
+				spec.Param = append(spec.Param, val)
+			} else {
+				spec.Return = append(spec.Return, val)
+			}
+		}
+	}
+
+	return spec, nil
+}
+
+type sourceUnit struct {
+	Lines []string
+}
+
+func newSourceUnit(path string) (*sourceUnit, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(string(data), "\n")
+	return &sourceUnit{Lines: lines}, nil
+}
+
+type Pos struct {
+	FromLine uint64 `json:"from_line"`
+	ToLine   uint64 `json:"to_line"`
+}
+
+func (s *sourceUnit) Decode(position string) (*Pos, error) {
+	// position comes in the format <offset><length><something else?>
+	parts := strings.Split(position, ":")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("pos format not expected %s", position)
+	}
+
+	offset, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse int '%s': %v", parts[0], err)
+	}
+	length, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse int '%s': %v", parts[1], err)
+	}
+
+	from := s.FindLineCol(uint64(offset))
+	to := s.FindLineCol(uint64(offset + length))
+
+	return &Pos{FromLine: from, ToLine: to}, nil
+}
+
+func (s *sourceUnit) FindLineCol(pos uint64) uint64 {
+	var line, count uint64
+	for line = 0; line < uint64(len(s.Lines)); line++ {
+		count += uint64(len(s.Lines[line])) + 1
+
+		if pos <= count {
+			return line + 1
+		}
+	}
+	return 0
 }
