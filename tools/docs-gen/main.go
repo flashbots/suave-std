@@ -100,11 +100,12 @@ var docsTemplate = `
 # {{.Name}}
 
 {{.Description}}
+{{$Path := .Path}}
 
 ## Functions
 
 {{range .Functions}}
-### [https://github.com/flashbots/suave-std/#L{{.Pos.FromLine}}]({{.Name}})
+### [{{.Name}}](https://github.com/flashbots/suave-std/tree/main/{{$Path}}#L{{.Pos.FromLine}})
 
 {{.Description}}
 
@@ -128,7 +129,7 @@ Output:
 ## Structs
 
 {{range .Structs}}
-### [https://github.com/flashbots/suave-std/#L{{.Pos.FromLine}}]({{.Name}})
+### [{{.Name}}](https://github.com/flashbots/suave-std/tree/main/{{$Path}}#L{{.Pos.FromLine}})
 
 {{.Description}}
 
@@ -224,6 +225,7 @@ type astNode struct {
 	NodeType      string
 	Nodes         []astNode
 	ContractKind  string
+	Kind          string
 	Documentation *struct {
 		Text string
 	}
@@ -352,8 +354,13 @@ func parseArtifact(artifact *artifact) ([]*ContractDef, error) {
 			if err != nil {
 				return nil, err
 			}
+
+			funcName := astFunc.Name
+			if astFunc.Kind == "constructor" {
+				funcName = "constructor"
+			}
 			funcDecl := FunctionDef{
-				Name:        astFunc.Name,
+				Name:        funcName,
 				Description: natSpec.Description,
 				Pos:         pos,
 				IsModifier:  astFunc.NodeType == modifierDefinitionType,
