@@ -26,7 +26,7 @@ library Bundle {
     using JsonWriter for JsonWriter.Json;
     using LibString for *;
 
-    function sendBundle(string memory url, BundleObj memory bundle) internal returns (bytes memory) {
+    function sendBundle(BundleObj memory bundle, string memory url) internal returns (bytes memory) {
         Suave.HttpRequest memory request = encodeSendBundle(bundle);
         request.url = url;
         return Suave.doHTTPRequest(request);
