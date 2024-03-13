@@ -39,7 +39,7 @@ library Bundle {
 
     /**
      * Encodes an [RpcSBundle](https://github.com/flashbots/suave-geth/blob/main/core/types/sbundle.go#L21-L27)
-     * for the `Suave.simulateBundle`.
+     * for `Suave.simulateBundle`.
      */
     function encodeSimBundle(BundleObj memory args) internal pure returns (bytes memory params) {
         require(args.txns.length > 0, "Bundle: no txns");
