@@ -48,7 +48,7 @@ library Bundle {
         writer = writer.writeStartObject();
         writer = writer.writeStringProperty("blockNumber", args.blockNumber.toHexString());
         if (args.refundPercent > 0) {
-            writer = writer.writeUintProperty("refundPercent", args.refundPercent);
+            writer = writer.writeUintProperty("percent", args.refundPercent);
         }
         if (args.revertingHashes.length > 0) {
             writer = writer.writeStartArray("revertingHashes");
