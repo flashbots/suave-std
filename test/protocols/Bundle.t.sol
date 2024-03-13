@@ -49,7 +49,7 @@ contract EthSendBundle is Test {
         bundle.refundPercent = 50;
 
         bytes memory params = Bundle.encodeSimBundle(bundle);
-        assertEq(string(params), '{"blockNumber": "0x01","refundPercent": 50,"txs": ["0x1234"]}');
+        assertEq(string(params), '{"blockNumber": "0x01","percent": 50,"txs": ["0x1234"]}');
 
         // encode with 'revertingHashes'
         bundle.revertingHashes = new bytes32[](1);
@@ -58,7 +58,7 @@ contract EthSendBundle is Test {
         bytes memory params2 = Bundle.encodeSimBundle(bundle);
         assertEq(
             string(params2),
-            '{"blockNumber": "0x01","refundPercent": 50,"revertingHashes": ["0x0a80df9c7574c9524999e774c05a27acf214618b45f4948b88ad1083e13a871a"],"txs": ["0x1234"]}'
+            '{"blockNumber": "0x01","percent": 50,"revertingHashes": ["0x0a80df9c7574c9524999e774c05a27acf214618b45f4948b88ad1083e13a871a"],"txs": ["0x1234"]}'
         );
     }
 
