@@ -42,69 +42,56 @@ library Bundle {
      * for the precompile `Suave.simulateBundle`.
      */
     function encodeSimBundle(BundleObj memory args) internal pure returns (bytes memory params) {
-        params = abi.encodePacked(
-            '{"blockNumber": "',
-            LibString.toHexString(args.blockNumber),
-            '", "refundPercent": ',
-            LibString.toString(args.refundPercent)
-        );
+        require(args.txns.length > 0, "Bundle: no txns");
+        JsonWriter.Json memory writer;
+
+        writer = writer.writeStartObject();
+        writer = writer.writeStringProperty("blockNumber", args.blockNumber.toHexString());
+        if (args.refundPercent > 0) {
+            writer = writer.writeUintProperty("refundPercent", args.refundPercent);
+        }
         if (args.revertingHashes.length > 0) {
-            params = abi.encodePacked(params, ', "revertingHashes": [');
+            writer = writer.writeStartArray("revertingHashes");
             for (uint256 i = 0; i < args.revertingHashes.length; i++) {
-                params = abi.encodePacked(params, '"', LibString.toHexString(uint256(args.revertingHashes[i])), '"');
-                if (i < args.revertingHashes.length - 1) {
-                    params = abi.encodePacked(params, ",");
-                } else {
-                    params = abi.encodePacked(params, "]");
-                }
+                writer = writer.writeStringValue(uint256(args.revertingHashes[i]).toHexString());
             }
+            writer = writer.writeEndArray();
         }
-        params = abi.encodePacked(params, ', "txs": [');
+        writer = writer.writeStartArray("txs");
         for (uint256 i = 0; i < args.txns.length; i++) {
-            params = abi.encodePacked(params, '"', LibString.toHexString(args.txns[i]), '"');
-            if (i < args.txns.length - 1) {
-                params = abi.encodePacked(params, ",");
-            } else {
-                // end object with txs
-                params = abi.encodePacked(params, "]}");
-            }
+            writer = writer.writeStringValue(args.txns[i].toHexString());
         }
+        writer = writer.writeEndArray();
+        writer = writer.writeEndObject();
+
+        params = abi.encodePacked(writer.value);
     }
 
     function encodeSendBundle(BundleObj memory args) internal pure returns (Suave.HttpRequest memory) {
         require(args.txns.length > 0, "Bundle: no txns");
 
         JsonWriter.Json memory writer;
-        // {...
+        // body
         writer = writer.writeStartObject();
-        // {jsonrpc: "2.0"
         writer = writer.writeStringProperty("jsonrpc", "2.0");
-        // {method: "eth_sendBundle"
         writer = writer.writeStringProperty("method", "eth_sendBundle");
-        // {id: 1
         writer = writer.writeUintProperty("id", 1);
 
-        // {params: [...
+        // params
         writer = writer.writeStartArray("params");
-        // params: [{...
         writer = writer.writeStartObject();
-        // {blockNumber: "0x..."}
         writer = writer.writeStringProperty("blockNumber", args.blockNumber.toHexString());
-        // {txs: [...txns]
         writer = writer.writeStartArray("txs");
         for (uint256 i = 0; i < args.txns.length; i++) {
             writer = writer.writeStringValue(args.txns[i].toHexString());
         }
         writer = writer.writeEndArray();
-        // {minTimestamp?
         if (args.minTimestamp > 0) {
             writer = writer.writeUintProperty("minTimestamp", args.minTimestamp);
         }
-        // {maxTimestamp?
         if (args.maxTimestamp > 0) {
             writer = writer.writeUintProperty("maxTimestamp", args.maxTimestamp);
         }
-        // {revertingHashes?
         if (args.revertingHashes.length > 0) {
             writer = writer.writeStartArray("revertingHashes");
             for (uint256 i = 0; i < args.revertingHashes.length; i++) {
@@ -112,15 +99,11 @@ library Bundle {
             }
             writer = writer.writeEndArray();
         }
-        // {replacementUuid?
         if (abi.encodePacked(args.replacementUuid).length > 0) {
             writer = writer.writeStringProperty("replacementUuid", args.replacementUuid);
         }
-        // end params object
         writer = writer.writeEndObject();
-        // end params array
         writer = writer.writeEndArray();
-        // end body object
         writer = writer.writeEndObject();
 
         Suave.HttpRequest memory request;
