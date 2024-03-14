@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/Kunde21/markdownfmt/v3"
 	"github.com/Kunde21/markdownfmt/v3/markdown"
@@ -53,14 +54,77 @@ func main() {
 
 	// apply the template and write the docs
 	for _, contract := range contractDefs {
-		if err := applyTemplate(contract); err != nil {
+		if err := applyTemplate(contractDefs, contract); err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-func applyTemplate(contract *ContractDef) error {
-	t, err := template.New("template").Parse(docsTemplate)
+func applyTemplate(all []*ContractDef, contract *ContractDef) error {
+	curPath := filepath.Dir(contract.Path)
+
+	funcMap := template.FuncMap{
+		"desc": func(s string) string {
+			// uppercase the fist letter in the string
+			chars := []rune(s)
+
+			// Check if the first character is a letter
+			if len(chars) > 0 && unicode.IsLetter(chars[0]) {
+				// Capitalize the first letter
+				chars[0] = unicode.ToUpper(chars[0])
+			}
+
+			s = string(chars)
+
+			// if the last character is not a period, add one
+			if !strings.HasSuffix(s, ".") {
+				s += "."
+			}
+			return s
+		},
+		"quote": func(s string) string {
+			return fmt.Sprintf("`%s`", s)
+		},
+		"type": func(s *Field) string {
+			if s.TypeReference == 0 {
+				// basic type with quotes
+				return fmt.Sprintf("`%s`", s.Type)
+			}
+
+			// find the reference type
+			for _, contract := range all {
+				for _, structRef := range contract.Structs {
+					if structRef.ID == s.TypeReference {
+
+						dstPath := filepath.Dir(contract.Path)
+						dstFile := filepath.Base(contract.Path)
+
+						// try to add a link to the struct
+						rel, err := filepath.Rel(curPath, dstPath)
+						if err != nil {
+							panic(err)
+						}
+
+						anchorName := strings.ToLower(structRef.Name)
+
+						var link string
+						if rel == "." {
+							// same file, just create the reference
+							link = fmt.Sprintf("[%s](#%s)", structRef.Name, anchorName)
+						} else {
+							link = fmt.Sprintf("[%s](%s#%s)", structRef.Name, filepath.Join(rel, dstFile), anchorName)
+						}
+
+						return link
+					}
+				}
+			}
+
+			log.Printf("Link for type not found: %s", s.Type)
+			return fmt.Sprintf("`%s`", s.Type)
+		},
+	}
+	t, err := template.New("template").Funcs(funcMap).Parse(docsTemplate)
 	if err != nil {
 		return err
 	}
@@ -78,6 +142,7 @@ func applyTemplate(contract *ContractDef) error {
 		return err
 	}
 	output = string(outputB)
+	output = strings.Replace(output, "&#39;", "'", -1)
 
 	// get the relative path with respect to src
 	relPath := strings.TrimPrefix(contract.Path, "src/")
@@ -99,7 +164,7 @@ func applyTemplate(contract *ContractDef) error {
 var docsTemplate = `
 # {{.Name}}
 
-{{.Description}}
+{{desc .Description}}
 {{$Path := .Path}}
 
 ## Functions
@@ -107,19 +172,19 @@ var docsTemplate = `
 {{range .Functions}}
 ### [{{.Name}}](https://github.com/flashbots/suave-std/tree/main/{{$Path}}#L{{.Pos.FromLine}})
 
-{{.Description}}
+{{desc .Description}}
 
 {{ if ne (len .Input) 0 -}}
 Input:
 {{range .Input}}
-- "{{.Name}}": {{.Description}}
+- {{quote .Name}} ({{type .}}): {{desc .Description}}
 {{end}}
 {{end}}
 
 {{ if ne (len .Output) 0 -}}
 Output:
 {{range .Output}}
-- "{{.Name}}": {{.Description}}
+- {{quote .Name}} ({{type .}}): {{desc .Description}}
 {{end}}
 {{end}}
 
@@ -131,10 +196,10 @@ Output:
 {{range .Structs}}
 ### [{{.Name}}](https://github.com/flashbots/suave-std/tree/main/{{$Path}}#L{{.Pos.FromLine}})
 
-{{.Description}}
+{{desc .Description}}
 
 {{range .Fields}}
-- "{{.Name}}": {{.Description}}
+- {{quote .Name}} ({{type .}}): {{desc .Description}}
 {{- end}}
 {{end}}
 
@@ -182,6 +247,11 @@ var (
 )
 
 func readForgeArtifacts(path string) ([]*artifact, error) {
+	// validate that the path exists
+	if _, err := os.Stat(path); err != nil {
+		return nil, err
+	}
+
 	artifacts := []*artifact{}
 	err := filepath.WalkDir(path, func(path string, d fs.DirEntry, _ error) error {
 		if d.IsDir() {
@@ -200,6 +270,12 @@ func readForgeArtifacts(path string) ([]*artifact, error) {
 		if err := json.Unmarshal(content, &artifact); err != nil {
 			return err
 		}
+
+		fmt.Println("-- artifact --")
+		fmt.Println(path)
+		fmt.Println(artifact)
+		fmt.Println(artifact.Ast)
+		fmt.Println(artifact.Ast.AbsolutePath)
 
 		// skip artifacts not in the 'src' repo
 		if !strings.HasPrefix(artifact.Ast.AbsolutePath, "src/") {
@@ -234,6 +310,7 @@ type astNode struct {
 	ReturnParameters      *astNode
 	Parameters            json.RawMessage
 	ReferencedDeclaration uint64
+	PathNode              *astNode
 }
 
 func (a *astNode) hasDocs() bool {
@@ -429,8 +506,10 @@ func fillSpecTypes(natValues []natSpecValue, astValues []*astNode) ([]*Field, er
 		} else if astVal.TypeName.NodeType == "UserDefinedTypeName" {
 			// find the resource reference.... it is the same!
 			field.TypeReference = astVal.TypeName.ReferencedDeclaration
+			field.Type = astVal.TypeName.PathNode.Name
 		} else if astVal.TypeName.NodeType == "ArrayTypeName" {
-			// TODO
+			// TODO: Fix
+			field.Type = astVal.TypeName.Name
 		} else {
 			return nil, fmt.Errorf("not found %s", astVal.TypeName.NodeType)
 		}
