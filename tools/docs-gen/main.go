@@ -52,6 +52,8 @@ func main() {
 		fmt.Println(string(data))
 	*/
 
+	log.Printf("Writing documentation to to %s", outPath)
+
 	// apply the template and write the docs
 	for _, contract := range contractDefs {
 		if err := applyTemplate(contractDefs, contract); err != nil {
@@ -270,12 +272,6 @@ func readForgeArtifacts(path string) ([]*artifact, error) {
 		if err := json.Unmarshal(content, &artifact); err != nil {
 			return err
 		}
-
-		fmt.Println("-- artifact --")
-		fmt.Println(path)
-		fmt.Println(artifact)
-		fmt.Println(artifact.Ast)
-		fmt.Println(artifact.Ast.AbsolutePath)
 
 		// skip artifacts not in the 'src' repo
 		if !strings.HasPrefix(artifact.Ast.AbsolutePath, "src/") {
