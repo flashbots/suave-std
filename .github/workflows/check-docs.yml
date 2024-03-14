@@ -28,5 +28,8 @@ jobs:
       - name: Print
         run: ls -la
 
+      - name: XX
+        run: cat out/Base.sol/CommonBase.json
+
       - name: Generate forge-docs
         run: cd tools/docs-gen && go run main.go --suave-std ../../
