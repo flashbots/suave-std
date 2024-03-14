@@ -8,6 +8,11 @@ import "solady/src/utils/JSONParserLib.sol";
 
 /// @notice Bundle is a library with utilities to interact with the Flashbots bundle API described in https://docs.flashbots.net/flashbots-auction/advanced/rpc-endpoint#eth_sendbundle
 library Bundle {
+    /// @notice BundleObj is a struct that represents a bundle to be sent to the Flashbots relay.
+    /// @param blockNumber the block number at which the bundle should be executed.
+    /// @param minTimestamp the minimum timestamp at which the bundle should be executed.
+    /// @param maxTimestamp the maximum timestamp at which the bundle should be executed.
+    /// @param txns the transactions to be included in the bundle.
     struct BundleObj {
         uint64 blockNumber;
         uint64 minTimestamp;
