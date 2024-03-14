@@ -272,6 +272,8 @@ func readForgeArtifacts(path string) ([]*artifact, error) {
 		}
 
 		fmt.Println("-- artifact --")
+		fmt.Println(path)
+		fmt.Println(artifact)
 		fmt.Println(artifact.Ast)
 		fmt.Println(artifact.Ast.AbsolutePath)
 
