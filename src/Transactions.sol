@@ -5,11 +5,23 @@ import "./utils/RLPWriter.sol";
 import "./suavelib/Suave.sol";
 import "Solidity-RLP/RLPReader.sol";
 
+/// @notice Transactions is a library with utilities to encode, decode and sign Ethereum transactions.
 library Transactions {
     using RLPReader for RLPReader.RLPItem;
     using RLPReader for RLPReader.Iterator;
     using RLPReader for bytes;
 
+    /// @notice EIP-155 transaction structure.
+    /// @param to is the target address.
+    /// @param gas is the gas limit.
+    /// @param gasPrice is the gas price.
+    /// @param value is the transfer value in gwei.
+    /// @param nonce is the latest nonce of the sender.
+    /// @param data is the transaction data.
+    /// @param chainId is the id of the chain where the transaction will be executed.
+    /// @param r is the 'r' signature value.
+    /// @param s is the 's' signature value.
+    /// @param v is the 'v' signature value.
     struct EIP155 {
         address to;
         uint256 gas;
@@ -23,6 +35,14 @@ library Transactions {
         uint256 v;
     }
 
+    /// @notice EIP-155 transaction request structure.
+    /// @param to is the target address.
+    /// @param gas is the gas limit.
+    /// @param gasPrice is the gas price.
+    /// @param value is the transfer value in gwei.
+    /// @param nonce is the latest nonce of the sender.
+    /// @param data is the transaction data.
+    /// @param chainId is the id of the chain where the transaction will be executed.
     struct EIP155Request {
         address to;
         uint256 gas;
@@ -33,6 +53,19 @@ library Transactions {
         uint256 chainId;
     }
 
+    /// @notice EIP-1559 transaction structure.
+    /// @param to is the target address.
+    /// @param gas is the gas limit.
+    /// @param maxFeePerGas is the maximum fee per gas.
+    /// @param maxPriorityFeePerGas is the maximum priority fee per gas.
+    /// @param value is the transfer value in gwei.
+    /// @param nonce is the latest nonce of the sender.
+    /// @param data is the transaction data.
+    /// @param chainId is the id of the chain where the transaction will be executed.
+    /// @param accessList is the access list.
+    /// @param r is the 'r' signature value.
+    /// @param s is the 's' signature value.
+    /// @param v is the 'v' signature value.
     struct EIP1559 {
         address to;
         uint256 gas;
@@ -48,6 +81,16 @@ library Transactions {
         uint256 v;
     }
 
+    /// @notice EIP-1559 transaction request structure.
+    /// @param to is the target address.
+    /// @param gas is the gas limit.
+    /// @param maxFeePerGas is the maximum fee per gas.
+    /// @param maxPriorityFeePerGas is the maximum priority fee per gas.
+    /// @param value is the transfer value in gwei.
+    /// @param nonce is the latest nonce of the sender.
+    /// @param data is the transaction data.
+    /// @param chainId is the id of the chain where the transaction will be executed.
+    /// @param accessList is the access list.
     struct EIP1559Request {
         address to;
         uint256 gas;
@@ -60,6 +103,9 @@ library Transactions {
         bytes accessList;
     }
 
+    /// @notice encode a EIP-155 transaction in RLP.
+    /// @param txStruct is the transaction structure.
+    /// @return output the encoded RLP bytes.
     function encodeRLP(EIP155 memory txStruct) internal pure returns (bytes memory) {
         bytes[] memory items = new bytes[](9);
 
@@ -81,6 +127,9 @@ library Transactions {
         return RLPWriter.writeList(items);
     }
 
+    /// @notice encode a EIP-1559 request transaction in RLP.
+    /// @param txStruct is the transaction structure.
+    /// @return output the encoded RLP bytes.
     function encodeRLP(EIP155Request memory txStruct) internal pure returns (bytes memory) {
         bytes[] memory items = new bytes[](9);
 
@@ -102,6 +151,9 @@ library Transactions {
         return RLPWriter.writeList(items);
     }
 
+    /// @notice encode a EIP-1559 transaction in RLP.
+    /// @param txStruct is the transaction structure.
+    /// @return output the encoded RLP bytes.
     function encodeRLP(EIP1559 memory txStruct) internal pure returns (bytes memory) {
         bytes[] memory items = new bytes[](12);
 
@@ -142,6 +194,9 @@ library Transactions {
         return txn;
     }
 
+    /// @notice encode a EIP-1559 request transaction in RLP.
+    /// @param txStruct is the transaction structure.
+    /// @return output the encoded RLP bytes.
     function encodeRLP(EIP1559Request memory txStruct) internal pure returns (bytes memory) {
         bytes[] memory items = new bytes[](9);
 
@@ -178,6 +233,9 @@ library Transactions {
         return txn;
     }
 
+    /// @notice decode a EIP-155 transaction from RLP.
+    /// @param rlp is the encoded RLP bytes.
+    /// @return txStruct the transaction structure.
     function decodeRLP_EIP155(bytes memory rlp) internal pure returns (EIP155 memory) {
         EIP155 memory txStruct;
 
@@ -203,6 +261,9 @@ library Transactions {
         return txStruct;
     }
 
+    /// @notice decode a EIP-155 request transaction from RLP.
+    /// @param rlp is the encoded RLP bytes.
+    /// @return txStruct the transaction structure.
     function decodeRLP_EIP155Request(bytes memory rlp) internal pure returns (EIP155Request memory) {
         EIP155Request memory txStruct;
 
@@ -226,6 +287,9 @@ library Transactions {
         return txStruct;
     }
 
+    /// @notice decode a EIP-1559 transaction from RLP.
+    /// @param rlp is the encoded RLP bytes.
+    /// @return txStruct the transaction structure.
     function decodeRLP_EIP1559(bytes memory rlp) internal pure returns (EIP1559 memory) {
         EIP1559 memory txStruct;
 
@@ -260,6 +324,9 @@ library Transactions {
         return txStruct;
     }
 
+    /// @notice decode a EIP-1559 request transaction from RLP.
+    /// @param rlp is the encoded RLP bytes.
+    /// @return txStruct the transaction structure.
     function decodeRLP_EIP1559Request(bytes memory rlp) internal pure returns (EIP1559Request memory) {
         EIP1559Request memory txStruct;
 
@@ -297,6 +364,10 @@ library Transactions {
         }
     }
 
+    /// @notice sign a EIP-155 transaction request.
+    /// @param request is the transaction request.
+    /// @param signingKey is the private key to sign the transaction.
+    /// @return response the signed transaction.
     function signTxn(Transactions.EIP1559Request memory request, string memory signingKey)
         internal
         returns (Transactions.EIP1559 memory response)
@@ -322,6 +393,10 @@ library Transactions {
         return response;
     }
 
+    /// @notice sign a EIP-155 transaction request.
+    /// @param request is the transaction request.
+    /// @param signingKey is the private key to sign the transaction.
+    /// @return response the signed transaction.
     function signTxn(Transactions.EIP155Request memory request, string memory signingKey)
         internal
         returns (Transactions.EIP155 memory response)

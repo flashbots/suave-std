@@ -7,8 +7,13 @@ import "../utils/JsonWriter.sol";
 import "solady/src/utils/LibString.sol";
 import "solady/src/utils/JSONParserLib.sol";
 
-// https://docs.flashbots.net/flashbots-auction/advanced/rpc-endpoint#eth_sendbundle
+/// @notice Bundle is a library with utilities to interact with the Flashbots bundle API described in https://docs.flashbots.net/flashbots-auction/advanced/rpc-endpoint#eth_sendbundle
 library Bundle {
+    /// @notice BundleObj is a struct that represents a bundle to be sent to the Flashbots relay.
+    /// @param blockNumber the block number at which the bundle should be executed.
+    /// @param minTimestamp the minimum timestamp at which the bundle should be executed.
+    /// @param maxTimestamp the maximum timestamp at which the bundle should be executed.
+    /// @param txns the transactions to be included in the bundle.
     struct BundleObj {
         uint64 blockNumber;
         bytes[] txns;
@@ -26,6 +31,10 @@ library Bundle {
     using JsonWriter for JsonWriter.Json;
     using LibString for *;
 
+    /// @notice send a bundle to the Flashbots relay.
+    /// @param bundle the bundle to send.
+    /// @param url the URL of the Flashbots relay.
+    /// @return response raw bytes response from the Flashbots relay.
     function sendBundle(BundleObj memory bundle, string memory url) internal returns (bytes memory) {
         Suave.HttpRequest memory request = encodeSendBundle(bundle);
         request.url = url;
@@ -128,6 +137,9 @@ library Bundle {
         return string(result);
     }
 
+    /// @notice decode a bundle from a JSON string.
+    /// @param bundleJson the JSON string of the bundle.
+    /// @return bundle the decoded bundle.
     function decodeBundle(string memory bundleJson) public pure returns (Bundle.BundleObj memory) {
         JSONParserLib.Item memory root = bundleJson.parse();
         JSONParserLib.Item memory txnsNode = root.at('"txs"');
