@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import "src/suavelib/Suave.sol";
 import "solady/src/utils/JSONParserLib.sol";
 
+/// @notice ChatGPT is a library with utilities to interact with the OpenAI ChatGPT API.
 contract ChatGPT {
     using JSONParserLib for *;
 
@@ -19,11 +20,15 @@ contract ChatGPT {
         string content;
     }
 
+    /// @notice constructor to create a ChatGPT instance.
+    /// @param _apiKey the API key to interact with the OpenAI ChatGPT.
     constructor(string memory _apiKey) {
         apiKey = _apiKey;
     }
 
-    // https://platform.openai.com/docs/api-reference/making-requests
+    /// @notice complete a chat with the OpenAI ChatGPT.
+    /// @param messages the messages to complete the chat.
+    /// @return message the response from the OpenAI ChatGPT.
     function complete(Message[] memory messages) public returns (string memory) {
         bytes memory body;
         body = abi.encodePacked('{"model": "gpt-3.5-turbo", "messages": [');

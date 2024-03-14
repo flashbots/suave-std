@@ -5,6 +5,7 @@ import "src/suavelib/Suave.sol";
 import "solady/src/utils/JSONParserLib.sol";
 import "solady/src/utils/LibString.sol";
 
+/// @notice EthJsonRPC is a library with utilities to interact with an Ethereum JSON-RPC endpoint.
 contract EthJsonRPC {
     using JSONParserLib for *;
 
@@ -14,6 +15,9 @@ contract EthJsonRPC {
         endpoint = _endpoint;
     }
 
+    /// @notice get the nonce of an address.
+    /// @param addr the address to get the nonce.
+    /// @return val the nonce of the address.
     function nonce(address addr) public returns (uint256) {
         bytes memory body = abi.encodePacked(
             '{"jsonrpc":"2.0","method":"eth_getTransactionCount","params":["',
