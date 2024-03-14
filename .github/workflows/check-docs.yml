@@ -9,7 +9,7 @@ env:
   FOUNDRY_PROFILE: ci
 
 jobs:
-  check-forge-gen:
+  check-docs-gen:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
