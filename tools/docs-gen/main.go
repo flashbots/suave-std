@@ -271,6 +271,10 @@ func readForgeArtifacts(path string) ([]*artifact, error) {
 			return err
 		}
 
+		fmt.Println("-- artifact --")
+		fmt.Println(artifact.Ast)
+		fmt.Println(artifact.Ast.AbsolutePath)
+
 		// skip artifacts not in the 'src' repo
 		if !strings.HasPrefix(artifact.Ast.AbsolutePath, "src/") {
 			return nil
