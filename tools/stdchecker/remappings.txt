@@ -1,0 +1,5 @@
+suave-std/=../../src/
+Solidity-RLP/=../../lib/Solidity-RLP/contracts/
+ds-test/=../../lib/forge-std/lib/ds-test/src/
+forge-std/=../../lib/forge-std/src/
+solady/=../../lib/solady/

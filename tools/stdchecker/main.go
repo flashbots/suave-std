@@ -1,34 +1,47 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/fs"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 )
 
+var (
+	inputFolder string
+	rootFolder  string
+)
+
 func main() {
+	flag.StringVar(&rootFolder, "root", "./", "root folder of stdchecker")
 	flag.Parse()
 	args := flag.Args()
 
-	inputFolder := args[0]
+	if len(args) != 1 {
+		log.Fatal("Usage: stdchecker <suave-std-folder>")
+	}
+
+	inputFolder = args[0]
+
 	snippets := readTargets(inputFolder)
-
 	writeSnippets(snippets)
-}
 
-func initializeRepo() {
-	// write snippets
-	// for indx, snippet := range snippets {
-	// }
+	// use forge to build the snippets
+	_, err := execForgeCommand([]string{
+		"build",
+		"--root", rootFolder,
+	})
+	fmt.Println(err)
 }
 
 func writeSnippets(snippets [][]byte) {
 	for indx, snippet := range snippets {
-		dst := fmt.Sprintf("../../test/example/snippet_%d.sol", indx)
+		dst := filepath.Join(rootFolder, fmt.Sprintf("repo-src/snippet_%d.sol", indx))
 
 		abs := filepath.Dir(dst)
 		if err := os.MkdirAll(abs, 0755); err != nil {
@@ -100,4 +113,26 @@ func readTargets(target string) [][]byte {
 		}
 	}
 	return snippets
+}
+
+func execForgeCommand(args []string) (string, error) {
+	_, err := exec.LookPath("forge")
+	if err != nil {
+		return "", fmt.Errorf("forge command not found in PATH: %v", err)
+	}
+
+	// Create a command to run the forge command
+	cmd := exec.Command("forge", args...)
+
+	// Set up output buffer
+	var outBuf, errBuf bytes.Buffer
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &errBuf
+
+	// Run the command
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("error running command: %v, %s", err, errBuf.String())
+	}
+
+	return outBuf.String(), nil
 }
