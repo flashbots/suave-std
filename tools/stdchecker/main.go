@@ -36,10 +36,17 @@ func main() {
 		"build",
 		"--root", rootFolder,
 	})
-	fmt.Println(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func writeSnippets(snippets [][]byte) {
+	// remove the destination folder first
+	if err := os.RemoveAll(filepath.Join(rootFolder, "repo-src")); err != nil {
+		log.Fatal(err)
+	}
+
 	for indx, snippet := range snippets {
 		dst := filepath.Join(rootFolder, fmt.Sprintf("repo-src/snippet_%d.sol", indx))
 
@@ -51,19 +58,6 @@ func writeSnippets(snippets [][]byte) {
 		if err := os.WriteFile(dst, []byte(snippet), 0755); err != nil {
 			log.Fatal(err)
 		}
-	}
-}
-
-func writeDestFolder(name string, content []byte) {
-	dst := fmt.Sprintf("../../test/example/%s", name)
-
-	abs := filepath.Dir(dst)
-	if err := os.MkdirAll(abs, 0755); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := os.WriteFile(dst, []byte(content), 0755); err != nil {
-		log.Fatal(err)
 	}
 }
 
@@ -109,9 +103,19 @@ func readTargets(target string) [][]byte {
 		matches := re.FindAllSubmatch(content, -1)
 
 		for _, match := range matches {
-			snippets = append(snippets, match[1])
+			snippet := match[1]
+			if bytes.Contains(snippet, []byte("[skip-check]")) {
+				// skip if the snippet contains the tag [skip-check]
+				continue
+			}
+			snippets = append(snippets, snippet)
 		}
 	}
+
+	if len(snippets) == 0 {
+		log.Fatal("No Solidity code blocks found in the target")
+	}
+	log.Printf("Found %d Solidity code blocks", len(snippets))
 	return snippets
 }
 
