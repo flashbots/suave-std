@@ -130,6 +130,8 @@ Helper library to send completion requests to ChatGPT.
 ```solidity
 import "suave-std/protocols/ChatGPT.sol";
 
+# [tag: python]
+
 contract Example {
     function example() {
         ChatGPT chatgpt = new ChatGPT("apikey");
