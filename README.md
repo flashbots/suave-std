@@ -82,6 +82,30 @@ contract Example {
 }
 ```
 
+### Gateway
+
+Helper library to interact with contracts from other chains.
+
+#### Example usage
+
+```solidity
+import "suave-std/Gateway.sol";
+
+contract Example {
+    function example() public {
+        // query the beacon chain deposit contract
+        Gateway gateway = new Gateway("http://<jsonrpc endpoint>", address(0x00000000219ab540356cBB839Cbe05303d7705Fa));
+        DepositContract depositContract = DepositContract(address(gateway));
+
+        bytes memory count = depositContract.get_deposit_count();
+    }
+}
+
+interface DepositContract {
+    function get_deposit_count() external view returns (bytes memory);
+}
+```
+
 ### protocols/MevShare.sol
 
 Helper library to send bundle requests with the Mev-Share protocol.
