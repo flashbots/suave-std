@@ -112,7 +112,7 @@ Helper library to interact with the Ethereum JsonRPC protocol.
 
 #### Example usage
 
-```solidity
+```solidity [skip]
 import "suave-std/protocols/EthJsonRPC.sol";
 
 contract Example {
@@ -129,8 +129,6 @@ Helper library to send completion requests to ChatGPT.
 
 ```solidity
 import "suave-std/protocols/ChatGPT.sol";
-
-# [tag: python]
 
 contract Example {
     function example() {
