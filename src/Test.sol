@@ -19,12 +19,12 @@ contract SuaveEnabled is Test {
     ConfidentialStoreI constant confStoreWrapper = ConfidentialStoreI(Registry.confidentialStoreAddr);
     ContextConnector constant ctx = ContextConnector(Suave.CONTEXT_GET);
 
-    function setUp() public {
+    function enableSuave() public {
         string[] memory inputs = new string[](2);
         inputs[0] = "suave-geth";
         inputs[1] = "version";
 
-        try vm.ffi(inputs) returns (bytes memory response) {
+        try vm.ffi(inputs) returns (bytes memory) {
             // TODO: validate versions
         } catch (bytes memory reason) {
             revert(detectErrorMessage(reason));

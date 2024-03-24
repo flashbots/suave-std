@@ -7,6 +7,10 @@ import "solady/src/utils/LibString.sol";
 import "src/protocols/EthJsonRPC.sol";
 
 contract EthJsonRPCTest is Test, SuaveEnabled {
+    function setUp() public {
+        enableSuave();
+    }
+
     function testEthJsonRPCGetNonce() public {
         EthJsonRPC ethjsonrpc = getEthJsonRPC();
 

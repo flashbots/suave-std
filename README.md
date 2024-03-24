@@ -165,6 +165,10 @@ import "suave-std/Suave.sol";
 contract TestForge is Test, SuaveEnabled {
     address[] public addressList = [0xC8df3686b4Afb2BB53e60EAe97EF043FE03Fb829];
 
+    function setUp() public {
+        enableSuave();
+    }
+
     function testConfidentialStore() public {
         Suave.DataRecord memory record = Suave.newDataRecord(0, addressList, addressList, "namespace");
 
@@ -190,6 +194,10 @@ import "src/Test.sol";
 import "src/suavelib/Suave.sol";
 
 contract TestForge is Test, SuaveEnabled {
+    function setUp() public {
+        enableSuave();
+    }
+
     function testConfidentialInputs() public {
         bytes memory input = hex"abcd";
         ctx.setConfidentialInputs(input);

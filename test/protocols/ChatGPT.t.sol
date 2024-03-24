@@ -6,6 +6,10 @@ import "src/Test.sol";
 import "src/protocols/ChatGPT.sol";
 
 contract ChatGPTTest is Test, SuaveEnabled {
+    function setUp() public {
+        enableSuave();
+    }
+
     function testChatGPT() public {
         ChatGPT chatgpt = getChatGPT();
 
