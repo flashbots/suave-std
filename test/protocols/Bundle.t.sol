@@ -9,10 +9,6 @@ import "solady/src/utils/LibString.sol";
 contract EthSendBundle is Test {
     using LibString for *;
 
-    function setUp() public {
-        enableSuave();
-    }
-
     function testEthSendBundleEncode() public {
         Bundle.BundleObj memory bundle;
         bundle.blockNumber = 1;

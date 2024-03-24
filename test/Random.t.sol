@@ -7,9 +7,13 @@ import "src/suavelib/Suave.sol";
 import "src/Random.sol";
 import "src/Test.sol";
 
-contract TestRandom is Test, SuaveEnabled {
-    function setUp() public {
-        enableSuave();
+contract X {
+    function setUp() public virtual {}
+}
+
+contract TestRandom is Test, X, SuaveEnabled {
+    function setUp() public override {
+        super.setUp();
     }
 
     function testRandomBytes() public {
