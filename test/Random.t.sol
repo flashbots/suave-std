@@ -8,6 +8,10 @@ import "src/Random.sol";
 import "src/Test.sol";
 
 contract TestRandom is Test, SuaveEnabled {
+    function setUp() public {
+        enableSuave();
+    }
+
     function testRandomBytes() public {
         bytes memory random = Suave.randomBytes(32);
         console2.logBytes(random);
