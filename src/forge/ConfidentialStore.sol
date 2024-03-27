@@ -53,9 +53,13 @@ contract ConfidentialStore is Test {
     }
 
     function confidentialStore(Suave.DataId dataId, string memory key, bytes memory value) public {
+        confidentialStore(dataId, key, value, msg.sender);
+    }
+
+    function confidentialStore(Suave.DataId dataId, string memory key, bytes memory value, address sender) public {
         address[] memory allowedStores = dataRecords[dataId].allowedStores;
         for (uint256 i = 0; i < allowedStores.length; i++) {
-            if (allowedStores[i] == msg.sender || allowedStores[i] == Suave.ANYALLOWED) {
+            if (allowedStores[i] == sender || allowedStores[i] == Suave.ANYALLOWED) {
                 dataRecordsContent[dataId][key] = value;
                 return;
             }
@@ -65,9 +69,17 @@ contract ConfidentialStore is Test {
     }
 
     function confidentialRetrieve(Suave.DataId dataId, string memory key) public view returns (bytes memory) {
+        return confidentialRetrieve(dataId, key, msg.sender);
+    }
+
+    function confidentialRetrieve(Suave.DataId dataId, string memory key, address sender)
+        public
+        view
+        returns (bytes memory)
+    {
         address[] memory allowedPeekers = dataRecords[dataId].allowedPeekers;
         for (uint256 i = 0; i < allowedPeekers.length; i++) {
-            if (allowedPeekers[i] == msg.sender || allowedPeekers[i] == Suave.ANYALLOWED) {
+            if (allowedPeekers[i] == sender || allowedPeekers[i] == Suave.ANYALLOWED) {
                 return dataRecordsContent[dataId][key];
             }
         }

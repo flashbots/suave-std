@@ -9,24 +9,27 @@ contract ConfidentialStoreConnector {
         address confidentialStoreAddr = 0x0101010101010101010101010101010101010101;
 
         address addr = address(this);
-        bytes4 sig;
+        bytes memory input;
 
         if (addr == Suave.CONFIDENTIAL_STORE) {
-            sig = ConfidentialStore.confidentialStore.selector;
+            (Suave.DataId dataId, string memory key, bytes memory val) =
+                abi.decode(msg.data, (Suave.DataId, string, bytes));
+
+            input =
+                abi.encodeWithSignature("confidentialStore(bytes16,string,bytes,address)", dataId, key, val, msg.sender);
         } else if (addr == Suave.CONFIDENTIAL_RETRIEVE) {
-            sig = ConfidentialStore.confidentialRetrieve.selector;
+            (Suave.DataId dataId, string memory key) = abi.decode(msg.data, (Suave.DataId, string));
+
+            input = abi.encodeWithSignature("confidentialRetrieve(bytes16,string,address)", dataId, key, msg.sender);
         } else if (addr == Suave.FETCH_DATA_RECORDS) {
-            sig = ConfidentialStore.fetchDataRecords.selector;
+            input = abi.encodePacked(ConfidentialStore.fetchDataRecords.selector, msg.data);
         } else if (addr == Suave.NEW_DATA_RECORD) {
-            sig = ConfidentialStore.newDataRecord.selector;
+            input = abi.encodePacked(ConfidentialStore.newDataRecord.selector, msg.data);
         } else {
             revert("function signature not found in the confidential store");
         }
 
-        bytes memory input = msg.data;
-
-        // call 'confidentialStore' with the selector and the input data.
-        (bool success, bytes memory output) = confidentialStoreAddr.call(abi.encodePacked(sig, input));
+        (bool success, bytes memory output) = confidentialStoreAddr.call(input);
         if (!success) {
             revert("Call to confidentialStore failed");
         }

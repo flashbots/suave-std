@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
-import "src/suavelib/Suave.sol";
+import "../suavelib/Suave.sol";
 import "solady/src/utils/JSONParserLib.sol";
 
 /// @notice ChatGPT is a library with utilities to interact with the OpenAI ChatGPT API.
