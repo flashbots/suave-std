@@ -28,7 +28,18 @@ contract TestForge is Test, SuaveEnabled {
     }
 
     function testForgeConfidentialStoreRecordStore() public {
-        Suave.DataRecord memory record = Suave.newDataRecord(0, addressList, addressList, "namespace");
+        // test with the wildcard
+        _testForgeConfidentialStoreRecordStore(addressList);
+
+        // test with address(this) as the allowed address
+        address[] memory addrList = new address[](1);
+        addrList[0] = address(this);
+
+        _testForgeConfidentialStoreRecordStore(addrList);
+    }
+
+    function _testForgeConfidentialStoreRecordStore(address[] memory addrList) public {
+        Suave.DataRecord memory record = Suave.newDataRecord(0, addrList, addrList, "namespace");
 
         bytes memory value = abi.encode("suave works with forge!");
         Suave.confidentialStore(record.id, "key1", value);
