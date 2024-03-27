@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import "../suavelib/Suave.sol";
 import "../utils/HexStrings.sol";
+import "../utils/JsonWriter.sol";
 import "solady/src/utils/LibString.sol";
 import "solady/src/utils/JSONParserLib.sol";
 
@@ -15,51 +16,111 @@ library Bundle {
     /// @param txns the transactions to be included in the bundle.
     struct BundleObj {
         uint64 blockNumber;
+        bytes[] txns;
+        // sendBundle exclusive:
         uint64 minTimestamp;
         uint64 maxTimestamp;
-        bytes[] txns;
+        bytes32[] revertingHashes;
+        string replacementUuid;
+        // SBundle (sim) exclusive
+        uint256 refundPercent;
     }
 
     using JSONParserLib for string;
     using JSONParserLib for JSONParserLib.Item;
+    using JsonWriter for JsonWriter.Json;
+    using LibString for *;
 
     /// @notice send a bundle to the Flashbots relay.
-    /// @param url the URL of the Flashbots relay.
     /// @param bundle the bundle to send.
+    /// @param url the URL of the Flashbots relay.
     /// @return response raw bytes response from the Flashbots relay.
-    function sendBundle(string memory url, BundleObj memory bundle) internal returns (bytes memory) {
-        Suave.HttpRequest memory request = encodeBundle(bundle);
+    function sendBundle(BundleObj memory bundle, string memory url) internal returns (bytes memory) {
+        Suave.HttpRequest memory request = encodeSendBundle(bundle);
         request.url = url;
         return Suave.doHTTPRequest(request);
     }
 
-    function encodeBundle(BundleObj memory args) internal pure returns (Suave.HttpRequest memory) {
+    function simulateBundle(BundleObj memory bundle) internal returns (uint64 egp) {
+        bytes memory simParams = encodeSimBundle(bundle);
+        egp = Suave.simulateBundle(simParams);
+    }
+
+    /**
+     * Encodes an [RpcSBundle](https://github.com/flashbots/suave-geth/blob/main/core/types/sbundle.go#L21-L27)
+     * for `Suave.simulateBundle`.
+     */
+    function encodeSimBundle(BundleObj memory args) internal pure returns (bytes memory params) {
+        require(args.txns.length > 0, "Bundle: no txns");
+        JsonWriter.Json memory writer;
+
+        writer = writer.writeStartObject();
+        writer = writer.writeStringProperty("blockNumber", args.blockNumber.toHexString());
+        if (args.refundPercent > 0) {
+            writer = writer.writeUintProperty("percent", args.refundPercent);
+        }
+        if (args.revertingHashes.length > 0) {
+            writer = writer.writeStartArray("revertingHashes");
+            for (uint256 i = 0; i < args.revertingHashes.length; i++) {
+                writer = writer.writeStringValue(uint256(args.revertingHashes[i]).toHexString());
+            }
+            writer = writer.writeEndArray();
+        }
+        writer = writer.writeStartArray("txs");
+        for (uint256 i = 0; i < args.txns.length; i++) {
+            writer = writer.writeStringValue(args.txns[i].toHexString());
+        }
+        writer = writer.writeEndArray();
+        writer = writer.writeEndObject();
+
+        params = abi.encodePacked(writer.value);
+    }
+
+    /**
+     * Encodes a bundle into an RPC request to `eth_sendBundle`.
+     */
+    function encodeSendBundle(BundleObj memory args) internal pure returns (Suave.HttpRequest memory) {
         require(args.txns.length > 0, "Bundle: no txns");
 
-        bytes memory params =
-            abi.encodePacked('{"blockNumber": "', LibString.toHexString(args.blockNumber), '", "txs": [');
+        JsonWriter.Json memory writer;
+        // body
+        writer = writer.writeStartObject();
+        writer = writer.writeStringProperty("jsonrpc", "2.0");
+        writer = writer.writeStringProperty("method", "eth_sendBundle");
+        writer = writer.writeUintProperty("id", 1);
+
+        // params
+        writer = writer.writeStartArray("params");
+        writer = writer.writeStartObject();
+        writer = writer.writeStringProperty("blockNumber", args.blockNumber.toHexString());
+        writer = writer.writeStartArray("txs");
         for (uint256 i = 0; i < args.txns.length; i++) {
-            params = abi.encodePacked(params, '"', LibString.toHexString(args.txns[i]), '"');
-            if (i < args.txns.length - 1) {
-                params = abi.encodePacked(params, ",");
-            } else {
-                params = abi.encodePacked(params, "]");
-            }
+            writer = writer.writeStringValue(args.txns[i].toHexString());
         }
+        writer = writer.writeEndArray();
         if (args.minTimestamp > 0) {
-            params = abi.encodePacked(params, ', "minTimestamp": ', LibString.toString(args.minTimestamp));
+            writer = writer.writeUintProperty("minTimestamp", args.minTimestamp);
         }
         if (args.maxTimestamp > 0) {
-            params = abi.encodePacked(params, ', "maxTimestamp": ', LibString.toString(args.maxTimestamp));
+            writer = writer.writeUintProperty("maxTimestamp", args.maxTimestamp);
         }
-        params = abi.encodePacked(params, "}");
-
-        bytes memory body =
-            abi.encodePacked('{"jsonrpc":"2.0","method":"eth_sendBundle","params":[', params, '],"id":1}');
+        if (args.revertingHashes.length > 0) {
+            writer = writer.writeStartArray("revertingHashes");
+            for (uint256 i = 0; i < args.revertingHashes.length; i++) {
+                writer = writer.writeBytesValue(abi.encodePacked(args.revertingHashes[i]));
+            }
+            writer = writer.writeEndArray();
+        }
+        if (abi.encodePacked(args.replacementUuid).length > 0) {
+            writer = writer.writeStringProperty("replacementUuid", args.replacementUuid);
+        }
+        writer = writer.writeEndObject();
+        writer = writer.writeEndArray();
+        writer = writer.writeEndObject();
 
         Suave.HttpRequest memory request;
         request.method = "POST";
-        request.body = body;
+        request.body = abi.encodePacked(writer.value);
         request.headers = new string[](1);
         request.headers[0] = "Content-Type: application/json";
         request.withFlashbotsSignature = true;
