@@ -18,7 +18,7 @@ contract EthSendBundle is Test {
         Suave.HttpRequest memory request = Bundle.encodeSendBundle(bundle);
         assertEq(
             string(request.body),
-            '{"jsonrpc": "2.0","method": "eth_sendBundle","id": 1,"params": [{"blockNumber": "0x01","txs": ["0x1234"]}]}'
+            '{"jsonrpc": "2.0", "method": "eth_sendBundle", "id": 1, "params": [{"blockNumber": "0x01", "txs": ["0x1234"]}]}'
         );
         assertTrue(request.withFlashbotsSignature);
 
@@ -28,7 +28,7 @@ contract EthSendBundle is Test {
         Suave.HttpRequest memory request2 = Bundle.encodeSendBundle(bundle);
         assertEq(
             string(request2.body),
-            '{"jsonrpc": "2.0","method": "eth_sendBundle","id": 1,"params": [{"blockNumber": "0x01","txs": ["0x1234"],"minTimestamp": 2}]}'
+            '{"jsonrpc": "2.0", "method": "eth_sendBundle", "id": 1, "params": [{"blockNumber": "0x01", "minTimestamp": 2, "txs": ["0x1234"]}]}'
         );
 
         // encode with 'maxTimestamp'
@@ -37,7 +37,7 @@ contract EthSendBundle is Test {
         Suave.HttpRequest memory request3 = Bundle.encodeSendBundle(bundle);
         assertEq(
             string(request3.body),
-            '{"jsonrpc": "2.0","method": "eth_sendBundle","id": 1,"params": [{"blockNumber": "0x01","txs": ["0x1234"],"minTimestamp": 2,"maxTimestamp": 3}]}'
+            '{"jsonrpc": "2.0", "method": "eth_sendBundle", "id": 1, "params": [{"blockNumber": "0x01", "minTimestamp": 2, "maxTimestamp": 3, "txs": ["0x1234"]}]}'
         );
     }
 
@@ -49,7 +49,7 @@ contract EthSendBundle is Test {
         bundle.refundPercent = 50;
 
         bytes memory params = Bundle.encodeSimBundle(bundle);
-        assertEq(string(params), '{"blockNumber": "0x01","percent": 50,"txs": ["0x1234"]}');
+        assertEq(string(params), '{"blockNumber": "0x01", "percent": 50, "txs": ["0x1234"]}');
 
         // encode with 'revertingHashes'
         bundle.revertingHashes = new bytes32[](1);
@@ -58,7 +58,7 @@ contract EthSendBundle is Test {
         bytes memory params2 = Bundle.encodeSimBundle(bundle);
         assertEq(
             string(params2),
-            '{"blockNumber": "0x01","percent": 50,"revertingHashes": ["0x0a80df9c7574c9524999e774c05a27acf214618b45f4948b88ad1083e13a871a"],"txs": ["0x1234"]}'
+            '{"blockNumber": "0x01", "percent": 50, "revertingHashes": ["0x0a80df9c7574c9524999e774c05a27acf214618b45f4948b88ad1083e13a871a"], "txs": ["0x1234"]}'
         );
     }
 

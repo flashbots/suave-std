@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 
 import "../suavelib/Suave.sol";
 import "../utils/HexStrings.sol";
-import "../utils/JsonWriter.sol";
 import "solady/src/utils/LibString.sol";
 import "solady/src/utils/JSONParserLib.sol";
 
@@ -28,7 +27,6 @@ library Bundle {
 
     using JSONParserLib for string;
     using JSONParserLib for JSONParserLib.Item;
-    using JsonWriter for JsonWriter.Json;
     using LibString for *;
 
     /// @notice send a bundle to the Flashbots relay.
@@ -52,28 +50,29 @@ library Bundle {
      */
     function encodeSimBundle(BundleObj memory args) internal pure returns (bytes memory params) {
         require(args.txns.length > 0, "Bundle: no txns");
-        JsonWriter.Json memory writer;
 
-        writer = writer.writeStartObject();
-        writer = writer.writeStringProperty("blockNumber", args.blockNumber.toHexString());
+        params = abi.encodePacked('{"blockNumber": "', args.blockNumber.toHexString(), '", ');
         if (args.refundPercent > 0) {
-            writer = writer.writeUintProperty("percent", args.refundPercent);
+            params = abi.encodePacked(params, '"percent": ', args.refundPercent.toString(), ", ");
         }
         if (args.revertingHashes.length > 0) {
-            writer = writer.writeStartArray("revertingHashes");
+            params = abi.encodePacked(params, '"revertingHashes": [');
             for (uint256 i = 0; i < args.revertingHashes.length; i++) {
-                writer = writer.writeStringValue(uint256(args.revertingHashes[i]).toHexString());
+                params = abi.encodePacked(params, '"', uint256(args.revertingHashes[i]).toHexString(), '"');
+                if (i < args.revertingHashes.length - 1) {
+                    params = abi.encodePacked(params, ", ");
+                }
             }
-            writer = writer.writeEndArray();
+            params = abi.encodePacked(params, "], ");
         }
-        writer = writer.writeStartArray("txs");
+        params = abi.encodePacked(params, '"txs": [');
         for (uint256 i = 0; i < args.txns.length; i++) {
-            writer = writer.writeStringValue(args.txns[i].toHexString());
+            params = abi.encodePacked(params, '"', args.txns[i].toHexString(), '"');
+            if (i < args.txns.length - 1) {
+                params = abi.encodePacked(params, ", ");
+            }
         }
-        writer = writer.writeEndArray();
-        writer = writer.writeEndObject();
-
-        params = abi.encodePacked(writer.value);
+        params = abi.encodePacked(params, "]}");
     }
 
     /**
@@ -82,45 +81,42 @@ library Bundle {
     function encodeSendBundle(BundleObj memory args) internal pure returns (Suave.HttpRequest memory) {
         require(args.txns.length > 0, "Bundle: no txns");
 
-        JsonWriter.Json memory writer;
         // body
-        writer = writer.writeStartObject();
-        writer = writer.writeStringProperty("jsonrpc", "2.0");
-        writer = writer.writeStringProperty("method", "eth_sendBundle");
-        writer = writer.writeUintProperty("id", 1);
+        bytes memory body = abi.encodePacked('{"jsonrpc": "2.0", "method": "eth_sendBundle", "id": 1, "params": [{');
 
         // params
-        writer = writer.writeStartArray("params");
-        writer = writer.writeStartObject();
-        writer = writer.writeStringProperty("blockNumber", args.blockNumber.toHexString());
-        writer = writer.writeStartArray("txs");
-        for (uint256 i = 0; i < args.txns.length; i++) {
-            writer = writer.writeStringValue(args.txns[i].toHexString());
-        }
-        writer = writer.writeEndArray();
+        body = abi.encodePacked(body, '"blockNumber": "', args.blockNumber.toHexString(), '", ');
         if (args.minTimestamp > 0) {
-            writer = writer.writeUintProperty("minTimestamp", args.minTimestamp);
+            body = abi.encodePacked(body, '"minTimestamp": ', args.minTimestamp.toString(), ", ");
         }
         if (args.maxTimestamp > 0) {
-            writer = writer.writeUintProperty("maxTimestamp", args.maxTimestamp);
+            body = abi.encodePacked(body, '"maxTimestamp": ', args.maxTimestamp.toString(), ", ");
         }
         if (args.revertingHashes.length > 0) {
-            writer = writer.writeStartArray("revertingHashes");
+            body = abi.encodePacked(body, '"revertingHashes": [');
             for (uint256 i = 0; i < args.revertingHashes.length; i++) {
-                writer = writer.writeBytesValue(abi.encodePacked(args.revertingHashes[i]));
+                body = abi.encodePacked(body, '"', abi.encodePacked(args.revertingHashes[i]), '"');
+                if (i < args.revertingHashes.length - 1) {
+                    body = abi.encodePacked(body, ", ");
+                }
             }
-            writer = writer.writeEndArray();
+            body = abi.encodePacked(body, "], ");
         }
         if (abi.encodePacked(args.replacementUuid).length > 0) {
-            writer = writer.writeStringProperty("replacementUuid", args.replacementUuid);
+            body = abi.encodePacked(body, '"replacementUuid": "', args.replacementUuid, '", ');
         }
-        writer = writer.writeEndObject();
-        writer = writer.writeEndArray();
-        writer = writer.writeEndObject();
+        body = abi.encodePacked(body, '"txs": [');
+        for (uint256 i = 0; i < args.txns.length; i++) {
+            body = abi.encodePacked(body, '"', args.txns[i].toHexString(), '"');
+            if (i < args.txns.length - 1) {
+                body = abi.encodePacked(body, ", ");
+            }
+        }
+        body = abi.encodePacked(body, "]}]}");
 
         Suave.HttpRequest memory request;
         request.method = "POST";
-        request.body = abi.encodePacked(writer.value);
+        request.body = abi.encodePacked(body);
         request.headers = new string[](1);
         request.headers[0] = "Content-Type: application/json";
         request.withFlashbotsSignature = true;
