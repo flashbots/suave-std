@@ -10,9 +10,12 @@ import "solady/src/utils/JSONParserLib.sol";
 library Bundle {
     /// @notice BundleObj is a struct that represents a bundle to be sent to the Flashbots relay.
     /// @param blockNumber the block number at which the bundle should be executed.
+    /// @param txns the transactions to be included in the bundle.
     /// @param minTimestamp the minimum timestamp at which the bundle should be executed.
     /// @param maxTimestamp the maximum timestamp at which the bundle should be executed.
-    /// @param txns the transactions to be included in the bundle.
+    /// @param revertingHashes the hashes of the transactions that the bundle should allow to revert.
+    /// @param replacementUuid the UUID of the bundle submission that should be replaced by this bundle. This argument must have been passed to the bundle being replaced.
+    /// @param refundPercent (mev-share) percentage of gas fees that should be refunded to the tx originator.
     struct BundleObj {
         uint64 blockNumber;
         bytes[] txns;
@@ -44,10 +47,9 @@ library Bundle {
         egp = Suave.simulateBundle(simParams);
     }
 
-    /**
-     * Encodes an [RpcSBundle](https://github.com/flashbots/suave-geth/blob/main/core/types/sbundle.go#L21-L27)
-     * for `Suave.simulateBundle`.
-     */
+    /// @notice Encodes an [RpcSBundle](https://github.com/flashbots/suave-geth/blob/main/core/types/sbundle.go#L21-L27) for `Suave.simulateBundle`.
+    /// @param args the bundle to encode.
+    /// @return params the encoded simulateBundle payload.
     function encodeSimBundle(BundleObj memory args) internal pure returns (bytes memory params) {
         require(args.txns.length > 0, "Bundle: no txns");
 
@@ -75,9 +77,9 @@ library Bundle {
         params = abi.encodePacked(params, "]}");
     }
 
-    /**
-     * Encodes a bundle into an RPC request to `eth_sendBundle`.
-     */
+    /// @notice Encodes a bundle into an RPC request to `eth_sendBundle`.
+    /// @param args the bundle to encode.
+    /// @return request the encoded HTTP request.
     function encodeSendBundle(BundleObj memory args) internal pure returns (Suave.HttpRequest memory) {
         require(args.txns.length > 0, "Bundle: no txns");
 
