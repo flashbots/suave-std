@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.8;
 
+import "forge-std/Vm.sol";
 import "forge-std/Test.sol";
 
 contract Connector is Test {
@@ -20,8 +21,13 @@ contract Connector is Test {
         inputs[5] = addrHex;
         inputs[6] = dataHex;
 
-        bytes memory res = vm.ffi(inputs);
-        return res;
+        VmSafe.FfiResult memory result = vm.tryFfi(inputs);
+        if (result.exitCode == 0) {
+            return result.stdout;
+        }
+
+        console.log(string.concat("Precompile reverted: ", string(result.stderr)));
+        revert(string(result.stderr));
     }
 
     function iToHex(bytes memory buffer) public pure returns (string memory) {
