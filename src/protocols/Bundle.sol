@@ -42,6 +42,9 @@ library Bundle {
         return Suave.doHTTPRequest(request);
     }
 
+    /// @notice simulate a bundle using the Flashbots bundle API.
+    /// @param bundle the bundle to simulate.
+    /// @return egp the simulated effective gas price of the bundle.
     function simulateBundle(BundleObj memory bundle) internal returns (uint64 egp) {
         bytes memory simParams = encodeSimBundle(bundle);
         egp = Suave.simulateBundle(simParams);
