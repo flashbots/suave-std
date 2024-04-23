@@ -1,12 +1,25 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.8;
 
-import "forge-std/Vm.sol";
 import "forge-std/Test.sol";
 
+interface VmSafe {
+    struct FfiResult {
+        int32 exitCode;
+        bytes stdout;
+        bytes stderr;
+    }
+
+    function projectRoot() external view returns (string memory path);
+
+    function tryFfi(string[] calldata commandInput) external returns (FfiResult memory result);
+}
+
 contract Connector is Test {
+    VmSafe internal constant vmSafe = VmSafe(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+
     function forgeIt(bytes memory addr, bytes memory data) internal returns (bytes memory) {
-        string memory root = vm.projectRoot();
+        string memory root = vmSafe.projectRoot();
         string memory foundryToml = string.concat(root, "/", "foundry.toml");
 
         string memory addrHex = iToHex(addr);
@@ -21,7 +34,7 @@ contract Connector is Test {
         inputs[5] = addrHex;
         inputs[6] = dataHex;
 
-        VmSafe.FfiResult memory result = vm.tryFfi(inputs);
+        VmSafe.FfiResult memory result = vmSafe.tryFfi(inputs);
         if (result.exitCode == 0) {
             return result.stdout;
         }
