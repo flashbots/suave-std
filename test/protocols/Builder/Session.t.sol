@@ -57,7 +57,7 @@ contract SuaveBuilderSessionTest is Test, SuaveEnabled {
     function testBuilderAPI_AddTransaction() public {
         Types.BuildBlockArgs memory args = getBlockBuildArgs();
 
-        Session session = new Session(execNodeEndpoint);
+        Session session = new Session(getBuilderSessionURL());
         session.start(args);
 
         // call the "Example" contract
@@ -81,7 +81,7 @@ contract SuaveBuilderSessionTest is Test, SuaveEnabled {
     function testBuilderAPI_BuildBlock() public {
         Types.BuildBlockArgs memory args = getBlockBuildArgs();
 
-        Session session = new Session(execNodeEndpoint);
+        Session session = new Session(getBuilderSessionURL());
         session.start(args);
 
         // send a valid transaction
@@ -100,7 +100,7 @@ contract SuaveBuilderSessionTest is Test, SuaveEnabled {
 
         Types.BuildBlockArgs memory args = getBlockBuildArgs();
 
-        Session session = new Session(execNodeEndpoint);
+        Session session = new Session(getBuilderSessionURL());
         session.start(args);
 
         // send a valid transaction
@@ -109,7 +109,17 @@ contract SuaveBuilderSessionTest is Test, SuaveEnabled {
 
         // build the block
         session.buildBlock();
-
         session.bid(blsPubKey);
+    }
+
+    function getBuilderSessionURL() public returns (string memory) {
+        try vm.envString("BUILDER_SESSION_URL") returns (string memory sessionURL) {
+            if (bytes(sessionURL).length == 0) {
+                vm.skip(true);
+            }
+            return sessionURL;
+        } catch {
+            vm.skip(true);
+        }
     }
 }

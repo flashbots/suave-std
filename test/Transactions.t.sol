@@ -63,7 +63,7 @@ contract TestTransactions is Test, SuaveEnabled {
             nonce: 38,
             data: abi.encodePacked(
                 hex"a9059cbb00000000000000000000000061b7b515c1ec603cf21463bcac992b60fd610ca900000000000000000000000000000000000000000000002dbf877cf6ec677800"
-                ),
+            ),
             chainId: 1,
             accessList: bytes(""),
             v: 0,
@@ -86,7 +86,7 @@ contract TestTransactions is Test, SuaveEnabled {
             nonce: 38,
             data: abi.encodePacked(
                 hex"a9059cbb00000000000000000000000061b7b515c1ec603cf21463bcac992b60fd610ca900000000000000000000000000000000000000000000002dbf877cf6ec677800"
-                ),
+            ),
             chainId: 1,
             accessList: bytes(""),
             v: 0,
@@ -135,7 +135,7 @@ contract TestTransactions is Test, SuaveEnabled {
             nonce: 38,
             data: abi.encodePacked(
                 hex"a9059cbb00000000000000000000000061b7b515c1ec603cf21463bcac992b60fd610ca900000000000000000000000000000000000000000000002dbf877cf6ec677800"
-                ),
+            ),
             chainId: 1,
             accessList: bytes("")
         });
