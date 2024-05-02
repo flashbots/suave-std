@@ -62,7 +62,6 @@ jobs:
 
       - name: Regenerate Forge registry
         run: |
-          forge build
           go run ./tools/forge-gen/main.go --apply
           git add ./src/forge/Registry.sol
 

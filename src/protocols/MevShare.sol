@@ -5,7 +5,7 @@ import "../suavelib/Suave.sol";
 import "solady/src/utils/LibString.sol";
 import "solady/src/utils/JSONParserLib.sol";
 
-// https://github.com/flashbots/mev-share/blob/main/specs/bundles/v0.1.md#json-rpc-request-scheme
+/// @notice MevShare is a library with utilities to interact with the Flashbots Mev-Share API described in https://github.com/flashbots/mev-share/blob/main/specs/bundles/v0.1.md#json-rpc-request-scheme
 library MevShare {
     struct Bundle {
         uint64 inclusionBlock;
@@ -71,6 +71,9 @@ library MevShare {
         return request;
     }
 
+    /// @notice send a Mev-Share to the Flashbots Mev-Share API.
+    /// @param url the URL of the Flashbots Mev-Share API.
+    /// @param bundle the Mev-Share bundle to send.
     function sendBundle(string memory url, Bundle memory bundle) internal {
         Suave.HttpRequest memory request = encodeBundle(bundle);
         request.url = url;

@@ -6,28 +6,29 @@ import "../suavelib/Suave.sol";
 
 library SuaveAddrs {
     function getSuaveAddrs() external pure returns (address[] memory) {
-        address[] memory addrList = new address[](20);
+        address[] memory addrList = new address[](21);
 
         addrList[0] = Suave.IS_CONFIDENTIAL_ADDR;
         addrList[1] = Suave.BUILD_ETH_BLOCK;
-        addrList[2] = Suave.CONFIDENTIAL_RETRIEVE;
-        addrList[3] = Suave.CONFIDENTIAL_STORE;
-        addrList[4] = Suave.CONTEXT_GET;
-        addrList[5] = Suave.DO_HTTPREQUEST;
-        addrList[6] = Suave.ETHCALL;
-        addrList[7] = Suave.EXTRACT_HINT;
-        addrList[8] = Suave.FETCH_DATA_RECORDS;
-        addrList[9] = Suave.FILL_MEV_SHARE_BUNDLE;
-        addrList[10] = Suave.NEW_BUILDER;
-        addrList[11] = Suave.NEW_DATA_RECORD;
-        addrList[12] = Suave.PRIVATE_KEY_GEN;
-        addrList[13] = Suave.RANDOM_UINT256;
-        addrList[14] = Suave.SIGN_ETH_TRANSACTION;
-        addrList[15] = Suave.SIGN_MESSAGE;
-        addrList[16] = Suave.SIMULATE_BUNDLE;
-        addrList[17] = Suave.SIMULATE_TRANSACTION;
-        addrList[18] = Suave.SUBMIT_BUNDLE_JSON_RPC;
-        addrList[19] = Suave.SUBMIT_ETH_BLOCK_TO_RELAY;
+        addrList[2] = Suave.BUILD_ETH_BLOCK_TO;
+        addrList[3] = Suave.CONFIDENTIAL_RETRIEVE;
+        addrList[4] = Suave.CONFIDENTIAL_STORE;
+        addrList[5] = Suave.CONTEXT_GET;
+        addrList[6] = Suave.DO_HTTPREQUEST;
+        addrList[7] = Suave.ETHCALL;
+        addrList[8] = Suave.EXTRACT_HINT;
+        addrList[9] = Suave.FETCH_DATA_RECORDS;
+        addrList[10] = Suave.FILL_MEV_SHARE_BUNDLE;
+        addrList[11] = Suave.NEW_BUILDER;
+        addrList[12] = Suave.NEW_DATA_RECORD;
+        addrList[13] = Suave.PRIVATE_KEY_GEN;
+        addrList[14] = Suave.RANDOM_BYTES;
+        addrList[15] = Suave.SIGN_ETH_TRANSACTION;
+        addrList[16] = Suave.SIGN_MESSAGE;
+        addrList[17] = Suave.SIMULATE_BUNDLE;
+        addrList[18] = Suave.SIMULATE_TRANSACTION;
+        addrList[19] = Suave.SUBMIT_BUNDLE_JSON_RPC;
+        addrList[20] = Suave.SUBMIT_ETH_BLOCK_TO_RELAY;
 
         return addrList;
     }

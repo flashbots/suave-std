@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
-import "src/suavelib/Suave.sol";
+import "../suavelib/Suave.sol";
 import "solady/src/utils/JSONParserLib.sol";
 import "solady/src/utils/LibString.sol";
+import "forge-std/console.sol";
+import "../utils/HexStrings.sol";
 
+/// @notice EthJsonRPC is a library with utilities to interact with an Ethereum JSON-RPC endpoint.
 contract EthJsonRPC {
     using JSONParserLib for *;
 
@@ -14,6 +17,9 @@ contract EthJsonRPC {
         endpoint = _endpoint;
     }
 
+    /// @notice get the nonce of an address.
+    /// @param addr the address to get the nonce.
+    /// @return val the nonce of the address.
     function nonce(address addr) public returns (uint256) {
         bytes memory body = abi.encodePacked(
             '{"jsonrpc":"2.0","method":"eth_getTransactionCount","params":["',
@@ -24,6 +30,24 @@ contract EthJsonRPC {
         JSONParserLib.Item memory item = doRequest(string(body));
         uint256 val = JSONParserLib.parseUintFromHex(trimQuotes(item.value()));
         return val;
+    }
+
+    /// @notice call a contract function.
+    /// @param to the address of the contract.
+    /// @param data the data of the function.
+    /// @return the result of the function call.
+    function call(address to, bytes memory data) public returns (bytes memory) {
+        bytes memory body = abi.encodePacked(
+            '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"',
+            LibString.toHexStringChecksummed(to),
+            '","data":"',
+            LibString.toHexString(data),
+            '"},"latest"],"id":1}'
+        );
+
+        JSONParserLib.Item memory item = doRequest(string(body));
+        bytes memory result = HexStrings.fromHexString(_stripQuotesAndPrefix(item.value()));
+        return result;
     }
 
     function doRequest(string memory body) public returns (JSONParserLib.Item memory) {
@@ -38,6 +62,15 @@ contract EthJsonRPC {
 
         JSONParserLib.Item memory item = string(output).parse();
         return item.at('"result"');
+    }
+
+    function _stripQuotesAndPrefix(string memory s) internal pure returns (string memory) {
+        bytes memory strBytes = bytes(s);
+        bytes memory result = new bytes(strBytes.length - 4);
+        for (uint256 i = 3; i < strBytes.length - 1; i++) {
+            result[i - 3] = strBytes[i];
+        }
+        return string(result);
     }
 
     function trimQuotes(string memory input) private pure returns (string memory) {
