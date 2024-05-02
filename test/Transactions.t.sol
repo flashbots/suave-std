@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "src/Transactions.sol";
 import "src/Test.sol";
+import "./Fixtures.sol";
 
 contract TestTransactions is Test, SuaveEnabled {
     using Transactions for *;
@@ -27,6 +28,9 @@ contract TestTransactions is Test, SuaveEnabled {
         );
         _testEIP155Transaction(txnWithToAddress, expected);
 
+        bytes memory txnJSON = Transactions.encodeJSON(txnWithToAddress);
+        Fixtures.validate("txn_155_contract_call.json", string(txnJSON));
+
         Transactions.EIP155 memory txnWithoutToAddress = Transactions.EIP155({
             to: address(0),
             gas: 50000,
@@ -44,6 +48,9 @@ contract TestTransactions is Test, SuaveEnabled {
             hex"f84b010a82c350800a021ba0754a33a9c37cfcf61cd61939fd93f5fe194b7d1ee6ef07490e8c880f3bd0d87da0715bd50fa2c24e2ce0ea595025a44a39ac238558882f9f07dd885ddc51839419"
         );
         _testEIP155Transaction(txnWithoutToAddress, expected);
+
+        txnJSON = Transactions.encodeJSON(txnWithoutToAddress);
+        Fixtures.validate("txn_155_contract_creation.json", string(txnJSON));
     }
 
     function testEIP1559TransactionRLPEncoding() public {
@@ -56,7 +63,7 @@ contract TestTransactions is Test, SuaveEnabled {
             nonce: 38,
             data: abi.encodePacked(
                 hex"a9059cbb00000000000000000000000061b7b515c1ec603cf21463bcac992b60fd610ca900000000000000000000000000000000000000000000002dbf877cf6ec677800"
-                ),
+            ),
             chainId: 1,
             accessList: bytes(""),
             v: 0,
@@ -79,7 +86,7 @@ contract TestTransactions is Test, SuaveEnabled {
             nonce: 38,
             data: abi.encodePacked(
                 hex"a9059cbb00000000000000000000000061b7b515c1ec603cf21463bcac992b60fd610ca900000000000000000000000000000000000000000000002dbf877cf6ec677800"
-                ),
+            ),
             chainId: 1,
             accessList: bytes(""),
             v: 0,
@@ -128,7 +135,7 @@ contract TestTransactions is Test, SuaveEnabled {
             nonce: 38,
             data: abi.encodePacked(
                 hex"a9059cbb00000000000000000000000061b7b515c1ec603cf21463bcac992b60fd610ca900000000000000000000000000000000000000000000002dbf877cf6ec677800"
-                ),
+            ),
             chainId: 1,
             accessList: bytes("")
         });
