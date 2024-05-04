@@ -8,8 +8,6 @@ import "solady/src/utils/JSONParserLib.sol";
 contract ChatGPT {
     using JSONParserLib for *;
 
-    string apiKey;
-
     enum Role {
         User,
         System
@@ -20,16 +18,11 @@ contract ChatGPT {
         string content;
     }
 
-    /// @notice constructor to create a ChatGPT instance.
-    /// @param _apiKey the API key to interact with the OpenAI ChatGPT.
-    constructor(string memory _apiKey) {
-        apiKey = _apiKey;
-    }
-
     /// @notice complete a chat with the OpenAI ChatGPT.
+    /// @param apiKey ChatGPT API key
     /// @param messages the messages to complete the chat.
     /// @return message the response from the OpenAI ChatGPT.
-    function complete(Message[] memory messages) public returns (string memory) {
+    function complete(string calldata apiKey, Message[] memory messages) public returns (string memory) {
         bytes memory body;
         body = abi.encodePacked('{"model": "gpt-3.5-turbo", "messages": [');
         for (uint256 i = 0; i < messages.length; i++) {
