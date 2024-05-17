@@ -32,6 +32,21 @@ contract EthJsonRPC {
         return val;
     }
 
+    /// @notice get the balance of an address.
+    /// @param addr the address to get the balance.
+    /// @return val the balance of the address.
+    function balance(address addr) public returns (uint256) {
+        bytes memory body = abi.encodePacked(
+            '{"jsonrpc":"2.0","method":"eth_getBalance","params":["',
+            LibString.toHexStringChecksummed(addr),
+            '","latest"],"id":1}'
+        );
+
+        JSONParserLib.Item memory item = doRequest(string(body));
+        uint256 val = JSONParserLib.parseUintFromHex(trimQuotes(item.value()));
+        return val;
+    }
+
     /// @notice call a contract function.
     /// @param to the address of the contract.
     /// @param data the data of the function.

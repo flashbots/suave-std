@@ -14,6 +14,13 @@ contract EthJsonRPCTest is Test, SuaveEnabled {
         assertEq(nonce, 0);
     }
 
+    function testEthJsonRPCGetBalance() public {
+        EthJsonRPC ethjsonrpc = getEthJsonRPC();
+
+        uint256 balance = ethjsonrpc.balance(address(this));
+        assertEq(balance, 0);
+    }
+
     function testEthJsonRPCCall() public {
         EthJsonRPC ethjsonrpc = getEthJsonRPC();
 
