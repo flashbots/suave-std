@@ -13,6 +13,11 @@ contract EthJsonRPC {
 
     string endpoint;
 
+    struct AccountOverride {
+        address addr;
+        bytes code;
+    }
+
     constructor(string memory _endpoint) {
         endpoint = _endpoint;
     }
@@ -62,6 +67,43 @@ contract EthJsonRPC {
 
         JSONParserLib.Item memory item = doRequest(string(body));
         bytes memory result = HexStrings.fromHexString(_stripQuotesAndPrefix(item.value()));
+        return result;
+    }
+
+    /// @notice call a contract function with a state override.
+    /// @param to the address of the contract.
+    /// @param data the data of the function.
+    /// @param accountOverride the state override.
+    function call(address to, bytes memory data, AccountOverride[] memory accountOverride)
+        public
+        returns (bytes memory)
+    {
+        bytes memory body = abi.encodePacked(
+            '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"',
+            LibString.toHexStringChecksummed(to),
+            '","data":"',
+            LibString.toHexString(data),
+            '"},"latest",{'
+        );
+
+        for (uint256 i = 0; i < accountOverride.length; i++) {
+            body = abi.encodePacked(
+                body,
+                '"',
+                LibString.toHexStringChecksummed(accountOverride[i].addr),
+                '": {"code": "',
+                LibString.toHexString(accountOverride[i].code),
+                '"}'
+            );
+            if (i < accountOverride.length - 1) {
+                body = abi.encodePacked(body, ",");
+            }
+        }
+        body = abi.encodePacked(body, '}],"id":1}');
+
+        JSONParserLib.Item memory item = doRequest(string(body));
+        bytes memory result = HexStrings.fromHexString(_stripQuotesAndPrefix(item.value()));
+
         return result;
     }
 
