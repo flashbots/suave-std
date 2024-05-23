@@ -4,7 +4,6 @@ pragma solidity ^0.8.13;
 import "../suavelib/Suave.sol";
 import "solady/src/utils/JSONParserLib.sol";
 import "solady/src/utils/LibString.sol";
-import "forge-std/console.sol";
 import "../utils/HexStrings.sol";
 
 /// @notice EthJsonRPC is a library with utilities to interact with an Ethereum JSON-RPC endpoint.
@@ -26,13 +25,13 @@ contract EthJsonRPC {
     /// @param addr the address to get the nonce.
     /// @return val the nonce of the address.
     function nonce(address addr) public returns (uint256) {
-        bytes memory body = abi.encodePacked(
+        string memory body = string.concat(
             '{"jsonrpc":"2.0","method":"eth_getTransactionCount","params":["',
             LibString.toHexStringChecksummed(addr),
             '","latest"],"id":1}'
         );
 
-        JSONParserLib.Item memory item = doRequest(string(body));
+        JSONParserLib.Item memory item = doRequest(body);
         uint256 val = JSONParserLib.parseUintFromHex(trimQuotes(item.value()));
         return val;
     }
@@ -41,13 +40,13 @@ contract EthJsonRPC {
     /// @param addr the address to get the balance.
     /// @return val the balance of the address.
     function balance(address addr) public returns (uint256) {
-        bytes memory body = abi.encodePacked(
+        string memory body = string.concat(
             '{"jsonrpc":"2.0","method":"eth_getBalance","params":["',
             LibString.toHexStringChecksummed(addr),
             '","latest"],"id":1}'
         );
 
-        JSONParserLib.Item memory item = doRequest(string(body));
+        JSONParserLib.Item memory item = doRequest(body);
         uint256 val = JSONParserLib.parseUintFromHex(trimQuotes(item.value()));
         return val;
     }
@@ -57,7 +56,7 @@ contract EthJsonRPC {
     /// @param data the data of the function.
     /// @return the result of the function call.
     function call(address to, bytes memory data) public returns (bytes memory) {
-        bytes memory body = abi.encodePacked(
+        string memory body = string.concat(
             '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"',
             LibString.toHexStringChecksummed(to),
             '","data":"',
@@ -65,7 +64,7 @@ contract EthJsonRPC {
             '"},"latest"],"id":1}'
         );
 
-        JSONParserLib.Item memory item = doRequest(string(body));
+        JSONParserLib.Item memory item = doRequest(body);
         bytes memory result = HexStrings.fromHexString(_stripQuotesAndPrefix(item.value()));
         return result;
     }
@@ -79,7 +78,7 @@ contract EthJsonRPC {
         public
         returns (bytes memory)
     {
-        bytes memory body = abi.encodePacked(
+        string memory body = string.concat(
             '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"',
             LibString.toHexStringChecksummed(to),
             '","data":"',
@@ -88,7 +87,7 @@ contract EthJsonRPC {
         );
 
         for (uint256 i = 0; i < accountOverride.length; i++) {
-            body = abi.encodePacked(
+            body = string.concat(
                 body,
                 '"',
                 LibString.toHexStringChecksummed(accountOverride[i].addr),
@@ -97,12 +96,12 @@ contract EthJsonRPC {
                 '"}'
             );
             if (i < accountOverride.length - 1) {
-                body = abi.encodePacked(body, ",");
+                body = string.concat(body, ",");
             }
         }
-        body = abi.encodePacked(body, '}],"id":1}');
+        body = string.concat(body, '}],"id":1}');
 
-        JSONParserLib.Item memory item = doRequest(string(body));
+        JSONParserLib.Item memory item = doRequest(body);
         bytes memory result = HexStrings.fromHexString(_stripQuotesAndPrefix(item.value()));
 
         return result;
