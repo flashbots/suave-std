@@ -25,13 +25,16 @@ contract ChatGPT {
     constructor(string memory _apiKey) {
         apiKey = _apiKey;
     }
-
+    event bodyLog(string body);
     /// @notice complete a chat with the OpenAI ChatGPT.
     /// @param messages the messages to complete the chat.
+    /// @param model the model to complete the chat.
     /// @return message the response from the OpenAI ChatGPT.
-    function complete(Message[] memory messages) public returns (string memory) {
+    function complete(Message[] memory messages,string calldata model) public returns (string memory) {
         bytes memory body;
-        body = abi.encodePacked('{"model": "gpt-3.5-turbo", "messages": [');
+        
+        body = abi.encodePacked('{"model":"', model);
+        body = abi.encodePacked(body, '","messages": [');
         for (uint256 i = 0; i < messages.length; i++) {
             body = abi.encodePacked(
                 body,
@@ -46,7 +49,7 @@ contract ChatGPT {
             }
         }
         body = abi.encodePacked(body, '], "temperature": 0.7}');
-
+        emit bodyLog(bytesToString(body));
         Suave.HttpRequest memory request;
         request.method = "POST";
         request.url = "https://api.openai.com/v1/chat/completions";
@@ -63,7 +66,39 @@ contract ChatGPT {
 
         return result;
     }
+    function prepare(Message[] memory messages,string calldata model) public returns (string memory) {
+        bytes memory body;
+        
+        body = abi.encodePacked('{"model":"', model);
+        body = abi.encodePacked(body, '","messages": [');
+        for (uint256 i = 0; i < messages.length; i++) {
+            body = abi.encodePacked(
+                body,
+                '{"role": "',
+                messages[i].role == Role.User ? "user" : "system",
+                '", "content": "',
+                messages[i].content,
+                '"}'
+            );
+            if (i < messages.length - 1) {
+                body = abi.encodePacked(body, ",");
+            }
+        }
+        body = abi.encodePacked(body, '], "temperature": 0.7}');
+        emit bodyLog(bytesToString(body));
 
+        return bytesToString(body);
+    }
+    function bytesToString(bytes memory data) internal pure returns (string memory) {
+        uint256 length = data.length;
+        bytes memory chars = new bytes(length);
+
+        for(uint i = 0; i < length; i++) {
+            chars[i] = data[i];
+        }
+
+        return string(chars);
+    }
     function trimQuotes(string memory input) private pure returns (string memory) {
         bytes memory inputBytes = bytes(input);
         require(
