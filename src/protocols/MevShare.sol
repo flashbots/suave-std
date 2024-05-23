@@ -16,17 +16,16 @@ library MevShare {
 
     function encodeBundle(Bundle memory bundle) internal pure returns (Suave.HttpRequest memory) {
         require(bundle.bodies.length == bundle.canRevert.length, "MevShare: bodies and canRevert length mismatch");
-        bytes memory body = abi.encodePacked('{"jsonrpc":"2.0","method":"mev_sendBundle","params":[{"version":"v0.1",');
+        string memory body = '{"jsonrpc":"2.0","method":"mev_sendBundle","params":[{"version":"v0.1",';
 
         // -> inclusion
-        body =
-            abi.encodePacked(body, '"inclusion":{"block":"', LibString.toMinimalHexString(bundle.inclusionBlock), '"},');
+        body = string.concat(body, '"inclusion":{"block":"', LibString.toMinimalHexString(bundle.inclusionBlock), '"},');
 
         // -> body
-        body = abi.encodePacked(body, '"body":[');
+        body = string.concat(body, '"body":[');
 
         for (uint256 i = 0; i < bundle.bodies.length; i++) {
-            body = abi.encodePacked(
+            body = string.concat(
                 body,
                 '{"tx":"',
                 LibString.toHexString(bundle.bodies[i]),
@@ -36,17 +35,17 @@ library MevShare {
             );
 
             if (i < bundle.bodies.length - 1) {
-                body = abi.encodePacked(body, ",");
+                body = string.concat(body, ",");
             }
         }
 
-        body = abi.encodePacked(body, "],");
+        body = string.concat(body, "],");
 
         // -> validity
-        body = abi.encodePacked(body, '"validity":{"refund":[');
+        body = string.concat(body, '"validity":{"refund":[');
 
         for (uint256 i = 0; i < bundle.refundPercents.length; i++) {
-            body = abi.encodePacked(
+            body = string.concat(
                 body,
                 '{"bodyIdx":',
                 LibString.toString(i),
@@ -56,16 +55,16 @@ library MevShare {
             );
 
             if (i < bundle.refundPercents.length - 1) {
-                body = abi.encodePacked(body, ",");
+                body = string.concat(body, ",");
             }
         }
 
-        body = abi.encodePacked(body, "]}");
+        body = string.concat(body, "]}");
 
         Suave.HttpRequest memory request;
         request.headers = new string[](1);
         request.headers[0] = "Content-Type:application/json";
-        request.body = body;
+        request.body = bytes(body);
         request.withFlashbotsSignature = true;
 
         return request;

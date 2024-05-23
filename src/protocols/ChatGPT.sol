@@ -30,10 +30,9 @@ contract ChatGPT {
     /// @param messages the messages to complete the chat.
     /// @return message the response from the OpenAI ChatGPT.
     function complete(Message[] memory messages) public returns (string memory) {
-        bytes memory body;
-        body = abi.encodePacked('{"model": "gpt-3.5-turbo", "messages": [');
+        string memory body = '{"model": "gpt-3.5-turbo", "messages": [';
         for (uint256 i = 0; i < messages.length; i++) {
-            body = abi.encodePacked(
+            body = string.concat(
                 body,
                 '{"role": "',
                 messages[i].role == Role.User ? "user" : "system",
@@ -42,10 +41,10 @@ contract ChatGPT {
                 '"}'
             );
             if (i < messages.length - 1) {
-                body = abi.encodePacked(body, ",");
+                body = string.concat(body, ",");
             }
         }
-        body = abi.encodePacked(body, '], "temperature": 0.7}');
+        body = string.concat(body, '], "temperature": 0.7}');
 
         Suave.HttpRequest memory request;
         request.method = "POST";
@@ -53,7 +52,7 @@ contract ChatGPT {
         request.headers = new string[](2);
         request.headers[0] = string.concat("Authorization: Bearer ", apiKey);
         request.headers[1] = "Content-Type: application/json";
-        request.body = body;
+        request.body = bytes(body);
 
         bytes memory output = Suave.doHTTPRequest(request);
 
