@@ -74,6 +74,7 @@ contract EthJsonRPC {
     /// @param to the address of the contract.
     /// @param data the data of the function.
     /// @param accountOverride the state override.
+    /// @return the result of the function call.
     function call(address to, bytes memory data, AccountOverride[] memory accountOverride)
         public
         returns (bytes memory)
