@@ -53,21 +53,7 @@ contract ChatGPT {
         body = abi.encodePacked(body,  temperature);
         body = abi.encodePacked(body,  '}');
 
-        Suave.HttpRequest memory request;
-        request.method = "POST";
-        request.url = "https://api.openai.com/v1/chat/completions";
-        request.headers = new string[](2);
-        request.headers[0] = string.concat("Authorization: Bearer ", apiKey);
-        request.headers[1] = "Content-Type: application/json";
-        request.body = body;
-
-        bytes memory output = Suave.doHTTPRequest(request);
-
-        // decode responses
-        JSONParserLib.Item memory item = string(output).parse();
-        string memory result = trimQuotes(item.at('"choices"').at(0).at('"message"').at('"content"').value());
-
-        return result;
+        return doGptRequest(body);
     }
 
     /// @notice complete a chat with the OpenAI ChatGPT.
@@ -91,6 +77,10 @@ contract ChatGPT {
         }
         body = abi.encodePacked(body, '], "temperature": 0.7}');
 
+        return doGptRequest(body);
+    }
+
+    function doGptRequest(bytes memory body) private returns (string memory) {
         Suave.HttpRequest memory request;
         request.method = "POST";
         request.url = "https://api.openai.com/v1/chat/completions";
