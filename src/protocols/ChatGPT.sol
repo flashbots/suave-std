@@ -28,6 +28,35 @@ contract ChatGPT {
 
     /// @notice complete a chat with the OpenAI ChatGPT.
     /// @param messages the messages to complete the chat.
+    /// @param model the model of ChatGPT.
+    /// @param temperature the temperature of this request.
+    /// @return message the response from the OpenAI ChatGPT.
+    function complete(Message[] memory messages, string calldata model, string calldata temperature) public returns (string memory) {
+        bytes memory body;
+        body = abi.encodePacked('{"model": "',model);
+        body = abi.encodePacked(body,'", "messages": [');
+        for (uint256 i = 0; i < messages.length; i++) {
+            body = abi.encodePacked(
+                body,
+                '{"role": "',
+                messages[i].role == Role.User ? "user" : "system",
+                '", "content": "',
+                messages[i].content,
+                '"}'
+            );
+            if (i < messages.length - 1) {
+                body = abi.encodePacked(body, ",");
+            }
+        }
+        body = abi.encodePacked(body, '], "temperature":');
+        body = abi.encodePacked(body,  temperature);
+        body = abi.encodePacked(body,  '}');
+
+        return doGptRequest(body);
+    }
+
+    /// @notice complete a chat with the OpenAI ChatGPT.
+    /// @param messages the messages to complete the chat.
     /// @return message the response from the OpenAI ChatGPT.
     function complete(Message[] memory messages) public returns (string memory) {
         bytes memory body;
@@ -47,6 +76,10 @@ contract ChatGPT {
         }
         body = abi.encodePacked(body, '], "temperature": 0.7}');
 
+        return doGptRequest(body);
+    }
+
+    function doGptRequest(bytes memory body) private returns (string memory) {
         Suave.HttpRequest memory request;
         request.method = "POST";
         request.url = "https://api.openai.com/v1/chat/completions";
