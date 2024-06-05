@@ -30,7 +30,6 @@ contract ChatGPT {
     /// @param messages the messages to complete the chat.
     /// @param model the model of ChatGPT.
     /// @param temperature the temperature of this request.
-    /// @param messages the messages to complete the chat.
     /// @return message the response from the OpenAI ChatGPT.
     function complete(Message[] memory messages, string calldata model, string calldata temperature) public returns (string memory) {
         bytes memory body;
