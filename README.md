@@ -170,6 +170,22 @@ contract Example {
 }
 ```
 
+## crypto/Secp256k1.sol
+
+Helper library to interact with the `secp256k1` curve.
+
+```solidity
+import "src/crypto/Secp256k1.sol";
+
+contract Example {
+    function example() public {
+        // string memory privateKey = Suave.privateKeyGen(Suave.CryptoSignature.SECP256);
+        string memory privateKey = "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291";
+        address found = Secp256k1.deriveAddress(privateKey);
+    }
+}
+```
+
 ## Forge integration
 
 In order to use `forge`, you need to have a running `Suave` node and the `suave` binary in your path.
@@ -210,13 +226,14 @@ Use the `setConfidentialInputs` function to set the confidential inputs during t
 import "forge-std/Test.sol";
 import "src/Test.sol";
 import "src/suavelib/Suave.sol";
+import "src/Context.sol";
 
 contract TestForge is Test, SuaveEnabled {
     function testConfidentialInputs() public {
         bytes memory input = hex"abcd";
         ctx.setConfidentialInputs(input);
 
-        bytes memory found2 = Suave.confidentialInputs();
+        bytes memory found2 = Context.confidentialInputs();
         assertEq0(input, found2);
     }
 }

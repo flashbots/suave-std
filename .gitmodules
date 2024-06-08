@@ -7,3 +7,6 @@
 [submodule "lib/Solidity-RLP"]
 	path = lib/Solidity-RLP
 	url = https://github.com/hamdiallam/Solidity-RLP
+[submodule "lib/elliptic-curve-solidity"]
+	path = lib/elliptic-curve-solidity
+	url = https://github.com/witnet/elliptic-curve-solidity
