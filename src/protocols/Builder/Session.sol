@@ -51,6 +51,21 @@ contract Session is Test {
         bytes memory root = HexStrings.fromHexString(HexStrings.stripQuotesAndPrefix(output.at('"root"').value()));
     }
 
+    function doCall(address target, bytes memory data) public returns (bytes memory) {
+        bytes memory encodedRequest = abi.encodePacked(
+            '{"to":"', LibString.toHexStringChecksummed(target), '","data":"', LibString.toHexString(data), '"}'
+        );
+        return doCall(encodedRequest);
+    }
+
+    function doCall(bytes memory encodedRequest) public returns (bytes memory) {
+        bytes memory input = abi.encodePacked(session, ",", encodedRequest);
+        JSONParserLib.Item memory item = callImpl("call", input);
+
+        bytes memory result = HexStrings.fromHexString(HexStrings.stripQuotesAndPrefix(item.value()));
+        return result;
+    }
+
     function callImpl(string memory method, bytes memory args) internal returns (JSONParserLib.Item memory) {
         Suave.HttpRequest memory request;
         request.method = "POST";
