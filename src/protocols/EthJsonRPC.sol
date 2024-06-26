@@ -119,6 +119,10 @@ contract EthJsonRPC {
         bytes memory output = Suave.doHTTPRequest(request);
 
         JSONParserLib.Item memory item = string(output).parse();
+        JSONParserLib.Item memory err = item.at('"error"');
+        if (!err.isUndefined()) {
+            revert(err.value());
+        }
         return item.at('"result"');
     }
 
