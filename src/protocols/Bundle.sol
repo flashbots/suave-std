@@ -33,11 +33,11 @@ library Bundle {
         return Suave.doHTTPRequest(request);
     }
 
-    function encodeBundle(BundleObj memory args) internal pure returns (Suave.HttpRequest memory) {
-        require(args.txns.length > 0, "Bundle: no txns");
-
-        bytes memory params =
-            abi.encodePacked('{"blockNumber": "', LibString.toHexString(args.blockNumber), '", "txs": [');
+    /// @notice encode a bundle in json format.
+    /// @param args the bundle to encode.
+    /// @return params JSON-encoded bytes: `{blockNumber, txs, minTimestamp, maxTimestamp}`
+    function encodeBundleParams(BundleObj memory args) internal pure returns (bytes memory params) {
+        params = abi.encodePacked('{"blockNumber": "', LibString.toMinimalHexString(args.blockNumber), '", "txs": [');
         for (uint256 i = 0; i < args.txns.length; i++) {
             params = abi.encodePacked(params, '"', LibString.toHexString(args.txns[i]), '"');
             if (i < args.txns.length - 1) {
@@ -53,7 +53,15 @@ library Bundle {
             params = abi.encodePacked(params, ', "maxTimestamp": ', LibString.toString(args.maxTimestamp));
         }
         params = abi.encodePacked(params, "}");
+    }
 
+    /// @notice encode a call to `eth_sendBundle` as an HttpRequest.
+    /// @param args the bundle to encode.
+    /// @return request the HttpRequest to send the bundle.
+    function encodeBundle(BundleObj memory args) internal pure returns (Suave.HttpRequest memory) {
+        require(args.txns.length > 0, "Bundle: no txns");
+
+        bytes memory params = encodeBundleParams(args);
         bytes memory body =
             abi.encodePacked('{"jsonrpc":"2.0","method":"eth_sendBundle","params":[', params, '],"id":1}');
 
