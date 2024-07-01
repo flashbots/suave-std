@@ -18,7 +18,7 @@ contract EthSendBundle is Test {
         Suave.HttpRequest memory request = Bundle.encodeBundle(bundle);
         assertEq(
             string(request.body),
-            '{"jsonrpc":"2.0","method":"eth_sendBundle","params":[{"blockNumber": "0x01", "txs": ["0x1234"]}],"id":1}'
+            '{"jsonrpc":"2.0","method":"eth_sendBundle","params":[{"blockNumber": "0x1", "txs": ["0x1234"]}],"id":1}'
         );
         assertTrue(request.withFlashbotsSignature);
 
@@ -28,7 +28,7 @@ contract EthSendBundle is Test {
         Suave.HttpRequest memory request2 = Bundle.encodeBundle(bundle);
         assertEq(
             string(request2.body),
-            '{"jsonrpc":"2.0","method":"eth_sendBundle","params":[{"blockNumber": "0x01", "txs": ["0x1234"], "minTimestamp": 2}],"id":1}'
+            '{"jsonrpc":"2.0","method":"eth_sendBundle","params":[{"blockNumber": "0x1", "txs": ["0x1234"], "minTimestamp": 2}],"id":1}'
         );
 
         // encode with 'maxTimestamp'
@@ -37,7 +37,7 @@ contract EthSendBundle is Test {
         Suave.HttpRequest memory request3 = Bundle.encodeBundle(bundle);
         assertEq(
             string(request3.body),
-            '{"jsonrpc":"2.0","method":"eth_sendBundle","params":[{"blockNumber": "0x01", "txs": ["0x1234"], "minTimestamp": 2, "maxTimestamp": 3}],"id":1}'
+            '{"jsonrpc":"2.0","method":"eth_sendBundle","params":[{"blockNumber": "0x1", "txs": ["0x1234"], "minTimestamp": 2, "maxTimestamp": 3}],"id":1}'
         );
     }
 

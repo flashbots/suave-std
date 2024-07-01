@@ -259,6 +259,13 @@ func readForgeArtifacts(path string) ([]*artifact, error) {
 		if d.IsDir() {
 			return nil
 		}
+
+		// ignore if parent directory doesn't end w/ ".sol"
+		parentDir := filepath.Base(filepath.Dir(path))
+		if !strings.HasSuffix(parentDir, ".sol") {
+			return nil
+		}
+
 		ext := filepath.Ext(d.Name())
 		if ext != ".json" {
 			return nil
