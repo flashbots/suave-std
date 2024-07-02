@@ -14,6 +14,7 @@ contract X {
 contract TestRandom is Test, X, SuaveEnabled {
     function setUp() public override {
         super.setUp();
+        enableSuave();
     }
 
     function testRandomBytes() public {
