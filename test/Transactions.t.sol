@@ -9,6 +9,10 @@ import "./Fixtures.sol";
 contract TestTransactions is Test, SuaveEnabled {
     using Transactions for *;
 
+    function setUp() public {
+        enableSuave();
+    }
+
     function testEIP155TransactionRLPEncoding() public {
         Transactions.EIP155 memory txnWithToAddress = Transactions.EIP155({
             to: address(0x095E7BAea6a6c7c4c2DfeB977eFac326aF552d87),
