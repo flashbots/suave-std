@@ -5,6 +5,31 @@ import "forge-std/Test.sol";
 import "src/Test.sol";
 import "src/suavelib/Suave.sol";
 import "src/Context.sol";
+import {Suapp} from "src/Suapp.sol";
+
+contract NumberSuapp is Suapp {
+    uint256 public number;
+
+    function onSetNumber(uint256 num) public {
+        number = num;
+    }
+
+    function setNumber() public confidential returns (bytes memory) {
+        uint256 num = abi.decode(Context.confidentialInputs(), (uint256));
+        return abi.encodeWithSelector(this.onSetNumber.selector, num);
+    }
+}
+
+contract TestConfidential is Test, SuaveEnabled {
+    function testConfidentialResponse() public {
+        NumberSuapp suapp = new NumberSuapp();
+
+        ctx.setConfidentialInputs(abi.encode(123));
+
+        bytes memory suaveCalldata = suapp.setNumber();
+        assertEq(suaveCalldata.length, 4 + 32);
+    }
+}
 
 contract TestForge is Test, SuaveEnabled {
     address[] public addressList = [0xC8df3686b4Afb2BB53e60EAe97EF043FE03Fb829];
