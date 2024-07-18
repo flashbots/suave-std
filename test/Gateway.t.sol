@@ -21,6 +21,7 @@ contract TestGateway is Test, SuaveEnabled {
         } catch {
             vm.skip(true);
         }
+        revert("this code path should never be reached in normal circumstances");
     }
 }
 

@@ -24,7 +24,7 @@ contract SuaveEnabled is Test {
         inputs[0] = "suave-geth";
         inputs[1] = "version";
 
-        try vm.ffi(inputs) returns (bytes memory response) {
+        try vm.ffi(inputs) returns (bytes memory) {
             // TODO: validate versions
         } catch (bytes memory reason) {
             revert(detectErrorMessage(reason));
