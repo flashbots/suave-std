@@ -66,6 +66,7 @@ library Suave {
         string[] headers;
         bytes body;
         bool withFlashbotsSignature;
+        uint64 timeout;
     }
 
     /// @notice Result of a simulated transaction.
