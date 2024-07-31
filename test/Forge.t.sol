@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "src/Test.sol";
 import "src/suavelib/Suave.sol";
 import "src/Context.sol";
+import {Suapp} from "src/Suapp.sol";
 
 contract TestForge is Test, SuaveEnabled {
     address[] public addressList = [0xC8df3686b4Afb2BB53e60EAe97EF043FE03Fb829];
@@ -77,5 +78,47 @@ contract TestForge is Test, SuaveEnabled {
 
         address found3 = Context.kettleAddress();
         assertEq(found3, address(0));
+    }
+}
+
+contract TestConfidential is Test, SuaveEnabled {
+    /**
+     * @notice Assumes 36 bytes are given, returns `data[4..]`.
+     */
+    function stripSelector(bytes memory data) internal pure returns (bytes memory trimmedData) {
+        trimmedData = new bytes(data.length - 4);
+        assembly {
+            mstore(add(trimmedData, 0x20), sub(mload(add(data, 0x20)), 0x04))
+            mstore(add(trimmedData, 0x20), mload(add(data, 0x24)))
+        }
+    }
+
+    function testConfidentialResponse() public {
+        NumberSuapp suapp = new NumberSuapp();
+
+        ctx.setConfidentialInputs(abi.encode(123));
+
+        // call confidential/offchain function, verify calldata
+        bytes memory suaveCalldata = suapp.setNumber();
+        assertEq(suaveCalldata.length, 4 + 32);
+        uint256 num = abi.decode(stripSelector(suaveCalldata), (uint256));
+        assertEq(num, 123);
+
+        // call onchain function, verify number
+        suapp.onSetNumber(num);
+        assertEq(suapp.number(), num);
+    }
+}
+
+contract NumberSuapp is Suapp {
+    uint256 public number;
+
+    function onSetNumber(uint256 num) public {
+        number = num;
+    }
+
+    function setNumber() public confidential returns (bytes memory) {
+        uint256 num = abi.decode(Context.confidentialInputs(), (uint256));
+        return abi.encodeWithSelector(this.onSetNumber.selector, num);
     }
 }
