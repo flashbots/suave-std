@@ -7,7 +7,7 @@ import {ConfRequest, Status} from "src/forge/ConfidentialRequest.sol";
 import {NumberSuapp} from "../Forge.t.sol";
 
 contract ConfRequestTest is Test, SuaveEnabled {
-    using ConfRequest for *;
+    using ConfRequest for address;
 
     NumberSuapp numberSuapp = new NumberSuapp();
 
