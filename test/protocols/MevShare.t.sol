@@ -6,7 +6,7 @@ import "src/protocols/MevShare.sol";
 import "src/suavelib/Suave.sol";
 
 contract MevShareTest is Test {
-    function testEncodeMevShare() public {
+    function testEncodeMevShare() public pure {
         MevShare.Bundle memory bundle;
         bundle.inclusionBlock = 1;
 

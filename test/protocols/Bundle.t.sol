@@ -9,7 +9,7 @@ import "solady/src/utils/LibString.sol";
 contract EthSendBundle is Test {
     using LibString for *;
 
-    function testEthSendBundleEncode() public {
+    function testEthSendBundleEncode() public pure {
         Bundle.BundleObj memory bundle;
         bundle.blockNumber = 1;
         bundle.txns = new bytes[](1);
@@ -41,7 +41,7 @@ contract EthSendBundle is Test {
         );
     }
 
-    function testBundleDecode() public {
+    function testBundleDecode() public pure {
         string memory json = "{" '"blockNumber": "0xdead",' '"minTimestamp": 1625072400,'
             '"maxTimestamp": 1625076000,' '"txs": [' '"0xdeadbeef",' '"0xc0ffee",' '"0x00aabb"' "]" "}";
 

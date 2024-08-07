@@ -9,7 +9,7 @@ import "./Fixtures.sol";
 contract TestTransactions is Test, SuaveEnabled {
     using Transactions for *;
 
-    function testEIP155TransactionRLPEncoding() public {
+    function testEIP155TransactionRLPEncoding() public view {
         Transactions.EIP155 memory txnWithToAddress = Transactions.EIP155({
             to: address(0x095E7BAea6a6c7c4c2DfeB977eFac326aF552d87),
             gas: 50000,
@@ -53,7 +53,7 @@ contract TestTransactions is Test, SuaveEnabled {
         Fixtures.validate("txn_155_contract_creation.json", string(txnJSON));
     }
 
-    function testEIP1559TransactionRLPEncoding() public {
+    function testEIP1559TransactionRLPEncoding() public pure {
         Transactions.EIP1559 memory txnWithToAddress = Transactions.EIP1559({
             to: address(0xaea46A60368A7bD060eec7DF8CBa43b7EF41Ad85),
             gas: 64744,
@@ -101,7 +101,7 @@ contract TestTransactions is Test, SuaveEnabled {
         _testEIP1559Transaction(txnWithoutToAddress, expected);
     }
 
-    function _testEIP155Transaction(Transactions.EIP155 memory legacyTxn, bytes memory expectedRlp) public {
+    function _testEIP155Transaction(Transactions.EIP155 memory legacyTxn, bytes memory expectedRlp) public pure {
         bytes memory rlp = Transactions.encodeRLP(legacyTxn);
         assertEq0(rlp, expectedRlp);
 
@@ -112,7 +112,7 @@ contract TestTransactions is Test, SuaveEnabled {
         assertEq0(rlp1, expectedRlp);
     }
 
-    function _testEIP1559Transaction(Transactions.EIP1559 memory eip1559Txn, bytes memory expectedRlp) public {
+    function _testEIP1559Transaction(Transactions.EIP1559 memory eip1559Txn, bytes memory expectedRlp) public pure {
         bytes memory rlp = Transactions.encodeRLP(eip1559Txn);
         assertEq0(rlp, expectedRlp);
 

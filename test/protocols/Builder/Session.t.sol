@@ -20,8 +20,12 @@ contract Example {
 contract SuaveBuilderSessionTest is Test, SuaveEnabled {
     string constant signingKey = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
     string constant execNodeEndpoint = "http://localhost:8545";
+    // pair of bls private and public keys
+    string constant blsPrivKey = "68a84428e388a5de81fa54f6f91a34d28f09692262c0ee4da81935a4e832ae19";
+    string constant blsPubKey =
+        "b6b973370f9684a2bc0b89f873b772b01269277196e84b69fe8ebad8908e777c09cdfad9d4a2f849e12ecd12ba9dce20";
 
-    function getBlockBuildArgs() public returns (Types.BuildBlockArgs memory) {
+    function getBlockBuildArgs() public pure returns (Types.BuildBlockArgs memory) {
         Types.BuildBlockArgs memory args;
         args.slot = 1;
         args.proposerPubkey = hex"1234";
@@ -87,17 +91,13 @@ contract SuaveBuilderSessionTest is Test, SuaveEnabled {
         // send a valid transaction
         Transactions.EIP155 memory response = getValidTxn();
         Types.SimulateTransactionResult memory result = session.addTransaction(response);
+        assertEq(result.success, true);
 
         // build the block
         session.buildBlock();
     }
 
     function testBuilderAPI_BidBuiltBlock() public {
-        // pair of bls private and public keys
-        string memory blsPrivKey = "68a84428e388a5de81fa54f6f91a34d28f09692262c0ee4da81935a4e832ae19";
-        string memory blsPubKey =
-            "b6b973370f9684a2bc0b89f873b772b01269277196e84b69fe8ebad8908e777c09cdfad9d4a2f849e12ecd12ba9dce20";
-
         Types.BuildBlockArgs memory args = getBlockBuildArgs();
 
         Session session = new Session(getBuilderSessionURL());
@@ -106,6 +106,7 @@ contract SuaveBuilderSessionTest is Test, SuaveEnabled {
         // send a valid transaction
         Transactions.EIP155 memory response = getValidTxn();
         Types.SimulateTransactionResult memory result = session.addTransaction(response);
+        assertEq(result.success, true);
 
         // build the block
         session.buildBlock();
@@ -121,5 +122,6 @@ contract SuaveBuilderSessionTest is Test, SuaveEnabled {
         } catch {
             vm.skip(true);
         }
+        revert("this code path should never be reached in normal circumstances");
     }
 }

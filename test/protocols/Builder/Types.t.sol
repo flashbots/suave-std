@@ -7,7 +7,7 @@ import "src/suavelib/Suave.sol";
 import "../../Fixtures.sol";
 
 contract SuaveBuilderTypesTest is Test {
-    function testSuaveBuilderTypes_Encode_BuildblockArgs() public {
+    function testSuaveBuilderTypes_Encode_BuildblockArgs() public view {
         Types.BuildBlockArgs memory args;
         args.slot = 1;
         args.proposerPubkey = hex"1234";
@@ -23,7 +23,7 @@ contract SuaveBuilderTypesTest is Test {
         Fixtures.validate("suave_builder_builderArgs.json", string(encode));
     }
 
-    function testSuaveBuilderTypes_Decode_SimulateTransactionResult() public {
+    function testSuaveBuilderTypes_Decode_SimulateTransactionResult() public view {
         string memory test = Fixtures.readFixture("suave_builder_simulateTransactionResult_failed.json");
         Types.SimulateTransactionResult memory result = Types.decodeSimulateTransactionResult(test);
         assertEq(result.success, false);

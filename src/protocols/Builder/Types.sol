@@ -44,7 +44,7 @@ library Types {
     }
 
     // encodeBuildBlockArgs encodes BuildBlockArgs to json
-    function encodeBuildBlockArgs(BuildBlockArgs memory args) internal returns (bytes memory) {
+    function encodeBuildBlockArgs(BuildBlockArgs memory args) internal pure returns (bytes memory) {
         bytes memory body = abi.encodePacked(
             '{"slot":"',
             LibString.toMinimalHexString(args.slot),
@@ -88,7 +88,7 @@ library Types {
     }
 
     // encodeWithdrawals encodes Withdrawal array to json
-    function encodeWithdrawals(Withdrawal[] memory withdrawals) internal returns (bytes memory) {
+    function encodeWithdrawals(Withdrawal[] memory withdrawals) internal pure returns (bytes memory) {
         bytes memory result = abi.encodePacked("[");
         for (uint64 i = 0; i < withdrawals.length; i++) {
             result = abi.encodePacked(result, i > 0 ? "," : "", encodeWithdrawal(withdrawals[i]));
@@ -97,7 +97,7 @@ library Types {
     }
 
     // encodeWithdrawal encodes Withdrawal to json
-    function encodeWithdrawal(Withdrawal memory withdrawal) internal returns (bytes memory) {
+    function encodeWithdrawal(Withdrawal memory withdrawal) internal pure returns (bytes memory) {
         return abi.encodePacked(
             '{"index":',
             LibString.toHexString(withdrawal.index),
@@ -114,13 +114,14 @@ library Types {
 
     function decodeSimulateTransactionResult(string memory input)
         internal
+        pure
         returns (SimulateTransactionResult memory result)
     {
         JSONParserLib.Item memory item = input.parse();
         return decodeSimulateTransactionResult(item);
     }
 
-    function decodeSimulatedLog(JSONParserLib.Item memory item) internal returns (SimulatedLog memory log) {
+    function decodeSimulatedLog(JSONParserLib.Item memory item) internal pure returns (SimulatedLog memory log) {
         log.data = fromHexString(_stripQuotesAndPrefix(item.at('"data"').value()));
         log.addr = bytesToAddress(fromHexString(_stripQuotesAndPrefix(item.at('"addr"').value())));
 
@@ -133,6 +134,7 @@ library Types {
 
     function decodeSimulateTransactionResult(JSONParserLib.Item memory item)
         internal
+        pure
         returns (SimulateTransactionResult memory result)
     {
         if (compareStrings(item.at('"success"').value(), "true")) {
