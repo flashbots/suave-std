@@ -6,7 +6,7 @@ import "../suavelib/Suave.sol";
 
 library SuaveAddrs {
     function getSuaveAddrs() external pure returns (address[] memory) {
-        address[] memory addrList = new address[](23);
+        address[] memory addrList = new address[](24);
 
         addrList[0] = Suave.IS_CONFIDENTIAL_ADDR;
         addrList[1] = Suave.AES_DECRYPT;
@@ -21,16 +21,17 @@ library SuaveAddrs {
         addrList[10] = Suave.EXTRACT_HINT;
         addrList[11] = Suave.FETCH_DATA_RECORDS;
         addrList[12] = Suave.FILL_MEV_SHARE_BUNDLE;
-        addrList[13] = Suave.NEW_BUILDER;
-        addrList[14] = Suave.NEW_DATA_RECORD;
-        addrList[15] = Suave.PRIVATE_KEY_GEN;
-        addrList[16] = Suave.RANDOM_BYTES;
-        addrList[17] = Suave.SIGN_ETH_TRANSACTION;
-        addrList[18] = Suave.SIGN_MESSAGE;
-        addrList[19] = Suave.SIMULATE_BUNDLE;
-        addrList[20] = Suave.SIMULATE_TRANSACTION;
-        addrList[21] = Suave.SUBMIT_BUNDLE_JSON_RPC;
-        addrList[22] = Suave.SUBMIT_ETH_BLOCK_TO_RELAY;
+        addrList[13] = Suave.GET_INSECURE_TIME;
+        addrList[14] = Suave.NEW_BUILDER;
+        addrList[15] = Suave.NEW_DATA_RECORD;
+        addrList[16] = Suave.PRIVATE_KEY_GEN;
+        addrList[17] = Suave.RANDOM_BYTES;
+        addrList[18] = Suave.SIGN_ETH_TRANSACTION;
+        addrList[19] = Suave.SIGN_MESSAGE;
+        addrList[20] = Suave.SIMULATE_BUNDLE;
+        addrList[21] = Suave.SIMULATE_TRANSACTION;
+        addrList[22] = Suave.SUBMIT_BUNDLE_JSON_RPC;
+        addrList[23] = Suave.SUBMIT_ETH_BLOCK_TO_RELAY;
 
         return addrList;
     }
