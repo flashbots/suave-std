@@ -427,7 +427,7 @@ library Transactions {
         return response;
     }
 
-    function decodeSignature(bytes memory signature) public pure returns (uint8 v, bytes32 r, bytes32 s) {
+    function decodeSignature(bytes memory signature) internal pure returns (uint8 v, bytes32 r, bytes32 s) {
         assembly {
             r := mload(add(signature, 0x20))
             s := mload(add(signature, 0x40))
