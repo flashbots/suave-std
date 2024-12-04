@@ -6,7 +6,7 @@ import "../suavelib/Suave.sol";
 
 library SuaveAddrs {
     function getSuaveAddrs() external pure returns (address[] memory) {
-        address[] memory addrList = new address[](24);
+        address[] memory addrList = new address[](25);
 
         addrList[0] = Suave.IS_CONFIDENTIAL_ADDR;
         addrList[1] = Suave.AES_DECRYPT;
@@ -17,21 +17,22 @@ library SuaveAddrs {
         addrList[6] = Suave.CONFIDENTIAL_STORE;
         addrList[7] = Suave.CONTEXT_GET;
         addrList[8] = Suave.DO_HTTPREQUEST;
-        addrList[9] = Suave.ETHCALL;
-        addrList[10] = Suave.EXTRACT_HINT;
-        addrList[11] = Suave.FETCH_DATA_RECORDS;
-        addrList[12] = Suave.FILL_MEV_SHARE_BUNDLE;
-        addrList[13] = Suave.GET_INSECURE_TIME;
-        addrList[14] = Suave.NEW_BUILDER;
-        addrList[15] = Suave.NEW_DATA_RECORD;
-        addrList[16] = Suave.PRIVATE_KEY_GEN;
-        addrList[17] = Suave.RANDOM_BYTES;
-        addrList[18] = Suave.SIGN_ETH_TRANSACTION;
-        addrList[19] = Suave.SIGN_MESSAGE;
-        addrList[20] = Suave.SIMULATE_BUNDLE;
-        addrList[21] = Suave.SIMULATE_TRANSACTION;
-        addrList[22] = Suave.SUBMIT_BUNDLE_JSON_RPC;
-        addrList[23] = Suave.SUBMIT_ETH_BLOCK_TO_RELAY;
+        addrList[9] = Suave.DO_HTTPREQUEST2;
+        addrList[10] = Suave.ETHCALL;
+        addrList[11] = Suave.EXTRACT_HINT;
+        addrList[12] = Suave.FETCH_DATA_RECORDS;
+        addrList[13] = Suave.FILL_MEV_SHARE_BUNDLE;
+        addrList[14] = Suave.GET_INSECURE_TIME;
+        addrList[15] = Suave.NEW_BUILDER;
+        addrList[16] = Suave.NEW_DATA_RECORD;
+        addrList[17] = Suave.PRIVATE_KEY_GEN;
+        addrList[18] = Suave.RANDOM_BYTES;
+        addrList[19] = Suave.SIGN_ETH_TRANSACTION;
+        addrList[20] = Suave.SIGN_MESSAGE;
+        addrList[21] = Suave.SIMULATE_BUNDLE;
+        addrList[22] = Suave.SIMULATE_TRANSACTION;
+        addrList[23] = Suave.SUBMIT_BUNDLE_JSON_RPC;
+        addrList[24] = Suave.SUBMIT_ETH_BLOCK_TO_RELAY;
 
         return addrList;
     }
